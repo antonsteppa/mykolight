@@ -28,8 +28,7 @@
             overflow-x: hidden;
         }
 
-        /* Ограничитель ширины (Центровщик) */
-        .container {
+        .layout-container {
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
@@ -72,21 +71,23 @@
             pointer-events: none; color: #fff; font-size: 12px;
         }
 
-        .btn {
+        .btn-search {
             text-decoration: none;
             background-color: #222;
-            color: #fff;
-            padding: 12px 24px;
+            color: #aaa;
+            padding: 12px 20px;
             border-radius: 8px;
-            font-weight: 500;
-            font-size: 16px;
-            border: 1px solid #444;
+            font-size: 14px;
+            border: 1px solid #333;
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             white-space: nowrap;
         }
-        .btn:hover { background-color: #fff; color: #000; }
+        .btn-search:hover { background-color: #333; color: #fff; border-color: #555; }
 
-        /* --- 3. ГРАФИК (Общая структура) --- */
+        /* --- 3. ГРАФИК --- */
         .chart-wrapper {
             flex-grow: 1;
             padding-top: 40px;
@@ -96,57 +97,86 @@
         
         .chart-grid {
             display: flex;
-            flex-direction: column; /* По умолчанию ПК: График сверху, Шкала снизу */
+            flex-direction: column;
             width: 100%;
         }
 
-        /* СЕТКА ГРАФИКА (Полоса) */
+        /* СЕТКА ГРАФИКА (24 ЧАСА) */
         .timeline-bars {
             display: grid;
-            grid-template-columns: repeat(48, 1fr);
-            grid-template-rows: 100%; /* Явная высота строки */
-            height: 100px;            /* Высота всего блока */
+            /* 24 колонки вместо 48 */
+            grid-template-columns: repeat(24, 1fr);
+            grid-template-rows: 100%;
+            height: 80px; /* Чуть компактнее */
+            gap: 2px;     /* Зазор между ЧАСАМИ */
             background-color: #000;
         }
 
-        /* СЕТКА ШКАЛЫ */
-        .timeline-scale {
-            display: grid;
-            grid-template-columns: repeat(48, 1fr);
-            border-top: 1px solid #333;
-            padding-top: 5px;
+        /* ЧАСОВОЙ БЛОК (Капсула) */
+        .hour-block {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px; /* Скругление углов часа */
+            overflow: hidden;   /* Чтобы половинки не вылезали за скругление */
         }
 
-        /* Деления шкалы */
+        /* ПОЛОВИНКА ЧАСА (30 мин) */
+        .half-hour {
+            flex: 1; /* Занимает 50% ширины */
+            height: 100%;
+            transition: background 0.3s;
+        }
+
+        /* СЕТКА ШКАЛЫ (24 ЧАСА) */
+        .timeline-scale {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 2px; /* Такой же зазор, как у графика */
+            margin-top: 0;
+            background-color: #000000;
+            padding-top: 5px;
+            border-top: 1px solid #222;
+        }
+
         .tick { 
             position: relative; 
             height: 30px; 
             border-left: 1px solid #333; 
         }
-        .tick:first-child { border-left: none; } /* Убираем левую границу у первого */
+        /* Убираем границу у первого, чтобы было красиво */
+        .tick:first-child { border-left: none; }
 
-        .tick::before { content: ''; position: absolute; top: 0; left: 0; background: #fff; }
-        .tick.major::before { width: 2px; height: 10px; }
-        .tick.minor::before { width: 1px; height: 5px; opacity: 0.5; }
+        /* Риска для получаса (посередине) */
+        .tick::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%; /* По центру ячейки */
+            height: 5px;
+            width: 1px;
+            background: #333;
+        }
 
         .tick-label { 
-            position: absolute; top: 14px; left: -50%; transform: translateX(-50%); 
-            font-size: 12px; color: #888; 
+            position: absolute; top: 10px; left: -50%; transform: translateX(-50%); 
+            font-size: 12px; color: #666; 
         }
-        .tick:first-child .tick-label { left: 0; transform: none; } /* 00 прижимаем влево */
-
-        .bar { width: 100%; height: 100%; transition: background 0.3s; }
+        .tick:first-child .tick-label { left: 0; transform: none; }
 
         /* ЦВЕТА */
-        .s-0 { background-color: #b7e4c7; } /* Свет есть */
-        .s-1 { background-color: #ffb5a7; } /* Нема */
-        .s-2 { background-color: #fbf8cc; } /* ХЗ */
-        .s-3 { background-color: #e57373; } /* Нове */
+        .s-0 { background-color: #b7e4c7; } 
+        .s-1 { background-color: #ffb5a7; } 
+        .s-2 { background-color: #fbf8cc; } 
+        .s-3 { background-color: #e57373; } 
         .s-gray { background-color: #222; }
 
+        /* Рамка текущего времени */
         .current-time {
-            position: relative; z-index: 2;
-            box-shadow: inset 0 0 0 2px #fff;
+            position: relative; 
+            z-index: 2;
+            /* Рамка теперь внутри, чтобы не ломать верстку */
+            box-shadow: inset 0 0 0 2px #fff; 
         }
 
         /* --- 4. ЛЕГЕНДА --- */
@@ -163,25 +193,27 @@
         @media (max-width: 768px) {
             .header-content { flex-wrap: nowrap; gap: 10px; }
             .select-wrapper { max-width: none; }
-            .btn { padding: 12px 15px; font-size: 14px; }
             
-            .chart-wrapper { padding-top: 10px; }
+            .btn-search { padding: 12px; }
+            .btn-search span { display: none; } 
+            .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
+
+            .chart-wrapper { padding-top: 20px; }
             
-            /* Переключаем на горизонтальный режим (flex-row) */
             .chart-grid {
-                flex-direction: row; /* Слева шкала, справа график */
+                flex-direction: row;
                 height: auto;
-                min-height: calc(100vh - 140px); /* Растягиваем на весь экран */
+                min-height: calc(100vh - 140px);
             }
 
             /* Шкала слева */
             .timeline-scale {
                 width: 50px;
                 display: grid;
-                grid-template-columns: 1fr; /* 1 колонка */
-                grid-template-rows: repeat(48, 1fr); /* 48 строк */
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(24, 1fr); /* 24 строки */
+                border-right: 1px solid #222;
                 border-top: none;
-                border-right: 1px solid #333;
                 padding-top: 0;
             }
 
@@ -189,23 +221,28 @@
             .timeline-bars {
                 flex-grow: 1;
                 display: grid;
-                grid-template-columns: 1fr; /* 1 колонка */
-                grid-template-rows: repeat(48, 1fr); /* 48 строк */
-                height: 1000px; /* Длинный скролл */
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(24, 1fr); /* 24 строки */
+                height: 1000px;
             }
 
-            /* Поворачиваем тики */
+            /* Часовой блок на мобильном */
+            .hour-block {
+                flex-direction: column; /* Сверху вниз (00-30, 30-60) */
+            }
+
             .tick { width: 100%; height: 100%; border-left: none; border-top: 1px solid #333; }
-            .tick:first-child { border-top: 1px solid #333; } /* Возвращаем границу */
+            .tick:first-child { border-top: none; }
             
-            .tick::before { top: 0; right: 0; left: auto; background: #fff; }
-            .tick.major::before { width: 10px; height: 2px; }
-            .tick.minor::before { width: 5px; height: 1px; }
+            /* Риска для получаса (посередине по вертикали) */
+            .tick::after {
+                top: 50%; left: auto; right: 0;
+                width: 5px; height: 1px;
+            }
             
             .tick-label { top: -8px; left: 5px; transform: none; right: auto; }
-            .tick:first-child .tick-label { left: 5px; }
+            .tick:first-child .tick-label { top: -8px; left: 5px; }
 
-            /* Легенда липкая внизу */
             .legend {
                 padding: 20px 10px; gap: 10px; font-size: 13px;
                 position: sticky; bottom: 0; background: rgba(0,0,0,0.95);
@@ -218,7 +255,6 @@
 </head>
 <body>
 
-    <!-- ШАПКА -->
     <div class="header">
         <div class="container header-content">
             <div class="select-wrapper">
@@ -232,28 +268,26 @@
                 </select>
                 <div class="select-arrow">▼</div>
             </div>
-            <a href="https://off.energy.mk.ua/" target="_blank" class="btn">Моя черга</a>
+            <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
         </div>
     </div>
 
-    <!-- ГРАФИК -->
     <div class="chart-wrapper">
         <div class="container">
             <div class="chart-grid">
-                <!-- ВАЖНО: Порядок в HTML для ПК: График, потом Шкала -->
-                <!-- На мобильном мы меняем order через flex-direction (row vs column) -->
-                <!-- Но проще сделать так: -->
+                <!-- Важно: Порядок. JS переставит их для мобилки если нужно, но через flex-direction проще -->
+                <!-- На ПК: bars (сверху), scale (снизу) - default flex col -->
+                <!-- На Моб: scale (слева), bars (справа) - flex row -->
                 
-                <!-- Блок для ПК (верх) / Моб (право) -->
-                <div class="timeline-bars" id="barsContainer" style="order: 1;"></div>
+                <!-- Чтобы scale был слева на мобильном, он должен быть первым в коде при flex-row -->
+                <!-- На ПК мы можем использовать flex-direction: column-reverse или order -->
                 
-                <!-- Блок для ПК (низ) / Моб (лево) -->
-                <div class="timeline-scale" id="scaleContainer" style="order: 2;"></div>
+                <div class="timeline-bars" id="barsContainer" style="order: 1"></div>
+                <div class="timeline-scale" id="scaleContainer" style="order: 2"></div>
             </div>
         </div>
     </div>
 
-    <!-- ЛЕГЕНДА -->
     <div class="legend">
         <div class="legend-item"><div class="dot s-0"></div>Світло</div>
         <div class="legend-item"><div class="dot s-1"></div>Нема</div>
@@ -266,26 +300,38 @@
     
     let scheduleData = {};
 
-    // --- СОХРАНЕНИЕ ---
+    // СОХРАНЕНИЕ
     function saveQueue(value) {
         try { localStorage.setItem('myQ', value); } catch(e){}
+        try { sessionStorage.setItem('myQ', value); } catch(e){}
         document.cookie = "myQ=" + value + "; path=/; max-age=31536000; SameSite=None; Secure";
     }
 
     function getSavedQueue() {
         let val = null;
-        try { val = localStorage.getItem('myQ'); } catch(e){}
+        if(!val) try { val = localStorage.getItem('myQ'); } catch(e){}
         if (!val) {
             const match = document.cookie.match(new RegExp('(^| )myQ=([^;]+)'));
             if (match) val = match[2];
         }
+        if(!val) try { val = sessionStorage.getItem('myQ'); } catch(e){}
         return val;
     }
 
     async function init() {
-        // Меняем порядок order для мобильного через JS, или просто CSS
-        // CSS Media query is better. Added styling above.
+        // Установка порядка для мобильного через CSS (см style)
+        // Для ПК order-1 (bars), order-2 (scale).
+        // Для Моб order-1 (scale), order-2 (bars).
         
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @media (max-width: 768px) {
+                #scaleContainer { order: 1 !important; }
+                #barsContainer { order: 2 !important; }
+            }
+        `;
+        document.head.appendChild(style);
+
         drawScale();
         
         const saved = getSavedQueue();
@@ -303,68 +349,4 @@
         try {
             const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
             const text = await response.text();
-            const rows = text.split('\n');
-            rows.forEach(row => {
-                const cols = row.trim().split(','); // Убираем пробелы
-                if(cols.length < 2) return;
-                
-                // Чистим имя очереди от мусора
-                const queueName = cols[0].trim();
-                const values = cols.slice(1).map(v => parseInt(v));
-                scheduleData[queueName] = values;
-            });
-        } catch (error) { console.error(error); }
-    }
-
-    function drawScale() {
-        const container = document.getElementById('scaleContainer');
-        let html = '';
-        for (let i = 0; i < 48; i++) {
-            const isHour = (i % 2 === 0);
-            const label = isHour ? `<span class="tick-label">${(i/2).toString().padStart(2,'0')}</span>` : '';
-            const type = isHour ? 'major' : 'minor';
-            html += `<div class="tick ${type}">${label}</div>`;
-        }
-        container.innerHTML = html;
-    }
-
-    function renderChart() {
-        const queue = document.getElementById('queueSelect').value;
-        saveQueue(queue);
-
-        const container = document.getElementById('barsContainer');
-        // Если данных нет - по умолчанию 3 (Нове/Красный) или 2 (ХЗ)
-        // Чтобы было видно, что график работает
-        const data = scheduleData[queue] || new Array(48).fill(3); 
-
-        const now = new Date();
-        const currentIndex = (now.getHours() * 2) + (now.getMinutes() >= 30 ? 1 : 0);
-
-        let html = '';
-        data.forEach((status, index) => {
-            let cls = 's-gray';
-            if (status === 0) cls = 's-0';
-            if (status === 1) cls = 's-1';
-            if (status === 2) cls = 's-2';
-            if (status === 3) cls = 's-3';
-            
-            if (index === currentIndex) cls += ' current-time';
-            html += `<div class="bar ${cls}"></div>`;
-        });
-        container.innerHTML = html;
-    }
-
-    // Добавляем стили для переключения порядка на мобильном
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @media (max-width: 768px) {
-            #barsContainer { order: 2; }
-            #scaleContainer { order: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    init();
-</script>
-</body>
-</html>
+            const rows = t
