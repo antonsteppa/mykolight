@@ -85,7 +85,7 @@
 
         /* --- 3. ГРАФИК --- */
         .chart-wrapper {
-            flex-grow: 1;
+            /* flex-grow убран, чтобы контент не растягивался на весь экран */
             padding-top: 40px;
             width: 100%;
         }
@@ -96,7 +96,6 @@
             width: 100%;
         }
 
-        /* ПОЛОСА ГРАФИКА */
         .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
@@ -121,42 +120,23 @@
             transition: background 0.3s;
         }
 
-        /* ШКАЛА ВРЕМЕНИ */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
-            gap: 1px; /* Синхронизация зазоров */
+            gap: 1px;
             margin-top: 5px;
             border-top: 1px solid #333;
-            padding-top: 8px; /* Чуть больше места для цифр */
+            padding-top: 8px;
         }
 
-        .tick {
-            position: relative;
-            height: 30px;
-            /* Рисуем черточку слева (начало часа) */
-            border-left: 1px solid #333;
-        }
+        .tick { position: relative; height: 30px; border-left: 1px solid #333; }
         .tick:first-child { border-left: none; }
 
         .tick-label {
-            position: absolute;
-            top: 5px; 
-            /* ВАЖНО: Прижимаем к левому краю (к черте) и центрируем относительно черты */
-            left: -0.5px; 
-            transform: translateX(-50%);
-            font-size: 12px; 
-            color: #666; 
-            font-weight: 500;
-            background-color: #000; /* Чтобы перекрывать линию если надо */
-            padding: 0 2px;
+            position: absolute; top: 8px; left: -50%; transform: translateX(-50%);
+            font-size: 12px; color: #666; font-weight: 500;
         }
-        
-        /* 00 прижимаем чуть правее, чтобы не резалось */
-        .tick:first-child .tick-label { 
-            left: 0; 
-            transform: none; 
-        }
+        .tick:first-child .tick-label { left: 0; transform: none; }
 
         /* ЦВЕТА */
         .s-0 { background-color: #b7e4c7; } 
@@ -165,17 +145,26 @@
         .s-3 { background-color: #e57373; } 
         .s-gray { background-color: #222; }
 
+        /* АНИМАЦИЯ МИГАНИЯ (БЕЛЫЙ -> ПРОЗРАЧНЫЙ) */
+        @keyframes blink-border {
+            0% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 1); }
+            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0); }
+            100% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 1); }
+        }
+
         .current-time {
-            position: relative; z-index: 5;
-            box-shadow: inset 0 0 0 2px #fff;
+            position: relative; 
+            z-index: 5;
+            animation: blink-border 2s infinite ease-in-out;
         }
 
         /* --- 4. ЛЕГЕНДА --- */
         .legend {
-            display: flex; gap: 20px; padding: 40px 0;
+            display: flex; gap: 20px; 
+            padding: 30px 0; /* Отступ сверху и снизу */
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            margin-top: auto;
+            /* Убрали margin-top: auto, чтобы не прилипало к низу экрана на ПК */
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
@@ -189,7 +178,7 @@
             .btn-search span { display: none; }
             .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
 
-            .chart-wrapper { padding-top: 20px; }
+            .chart-wrapper { padding-top: 20px; flex-grow: 1; }
 
             .chart-layout {
                 flex-direction: row; 
@@ -197,12 +186,11 @@
                 height: auto;
             }
 
-            /* Шкала слева */
             .chart-scale {
                 width: 50px;
                 display: grid;
                 grid-template-columns: 1fr;
-                grid-template-rows: repeat(24, 1fr); /* 24 строки */
+                grid-template-rows: repeat(24, 1fr);
                 margin-top: 0;
                 border-top: none;
                 border-right: 1px solid #333;
@@ -210,12 +198,11 @@
                 padding-right: 0;
             }
 
-            /* График справа */
             .chart-bars {
                 flex-grow: 1;
                 display: grid;
                 grid-template-columns: 1fr;
-                grid-template-rows: repeat(24, 1fr); 
+                grid-template-rows: repeat(24, 1fr);
                 height: 1000px;
             }
 
@@ -224,27 +211,25 @@
             .tick { 
                 width: 100%; height: 100%; 
                 border-left: none; 
-                border-top: 1px solid #333; /* Черта сверху */
+                border-top: 1px solid #333; 
             }
             .tick:first-child { border-top: none; }
             
-            /* Цифры на мобильном */
             .tick-label { 
-                top: -0.5px; /* Прижимаем к верхней линии */
-                left: auto; 
-                right: 8px; /* Отступ от графика справа */
-                transform: translateY(-50%); /* Центрируем по вертикали относительно линии */
-                text-align: right; 
-                width: auto;
+                top: -8px; left: 0; transform: none; right: 8px; 
+                text-align: right; width: auto; 
             }
-            /* 00 чуть ниже */
-            .tick:first-child .tick-label { top: 0; transform: none; }
+            .tick:first-child .tick-label { top: -8px; left: 0; }
 
             .legend {
                 padding: 15px; gap: 15px; font-size: 13px;
-                position: sticky; bottom: 0; background: rgba(0,0,0,0.95);
-                border-top: 1px solid #222; margin-top: 0;
+                position: sticky; bottom: 0; 
+                background: #000; /* Непрозрачный фон */
+                border-top: 1px solid #222; 
+                margin-top: 0;
                 width: 100%;
+                /* ОЧЕНЬ ВЫСОКИЙ Z-INDEX */
+                z-index: 9999;
             }
             
             .chart-scale { order: 1; }
@@ -276,10 +261,7 @@
     <div class="chart-wrapper">
         <div class="main-container">
             <div class="chart-layout">
-                <!-- БЛОК ГРАФИКА -->
                 <div class="chart-bars" id="barsContainer"></div>
-                
-                <!-- БЛОК ШКАЛЫ -->
                 <div class="chart-scale" id="scaleContainer"></div>
             </div>
         </div>
@@ -364,6 +346,7 @@
         const currentIndex = (now.getHours() * 2) + (now.getMinutes() >= 30 ? 1 : 0);
 
         let html = '';
+        
         for (let i = 0; i < 48; i += 2) {
             const stat1 = data[i];
             const stat2 = data[i+1];
