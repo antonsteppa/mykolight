@@ -27,7 +27,7 @@
             overflow-x: hidden;
         }
 
-        .main-container {
+        .container {
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
@@ -35,16 +35,17 @@
         }
 
         /* --- 2. ШАПКА --- */
-        .header-section {
+        .header {
             background-color: #000000;
-            border-bottom: 1px solid #1a1a1a;
+            /* ПРАВКА 1: Прибрали лінію знизу */
+            border-bottom: none; 
             padding: 20px 0;
-            position: sticky;
+            position: sticky; /* На ПК залишається липкою */
             top: 0;
             z-index: 100;
         }
 
-        .header-inner {
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -79,21 +80,22 @@
             display: flex; align-items: center; gap: 8px;
             white-space: nowrap;
         }
+        .btn-search:hover { background-color: #333; color: #fff; border-color: #555; }
 
-        /* --- 3. ГРАФИК --- */
+        /* --- 3. ГРАФИК (DESKTOP DEFAULT) --- */
         .chart-wrapper {
             width: 100%;
             padding-top: 40px;
-            padding-bottom: 40px;
+            padding-bottom: 20px;
         }
-        
+
         .chart-layout {
             display: flex;
-            flex-direction: column; /* ПК: вертикально */
+            flex-direction: column;
             width: 100%;
         }
 
-        /* ГРАФИК (Ячейки) */
+        /* Полоса з кубиками */
         .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
@@ -112,54 +114,41 @@
         }
         .half-hour { flex: 1; height: 100%; transition: background 0.3s; }
 
-        /* ШКАЛА (Чистая линейка) */
+        /* Шкала */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
+            margin-top: 5px;
             width: 100%;
-            margin-top: 0;
-            /* Главная линия разделителя */
-            border-top: 1px solid #333; 
-            padding-top: 0;
-            gap: 1px;
+            height: 30px;
+            border-top: 1px solid #333;
         }
 
-        /* Блок деления */
         .tick {
             position: relative;
-            height: 40px;
-            /* Убрали border-left, чтобы не черкать цифры */
+            height: 100%;
+            border-left: 1px solid #333;
         }
+        .tick:first-child { border-left: none; }
 
-        /* ДЛИННАЯ ЗАСЕЧКА (ЧАС) - рисуем отдельно */
-        .tick::before {
-            content: ''; position: absolute; background: #333;
-            left: 0; top: 0; 
-            width: 1px; height: 10px; /* Только сверху */
-        }
-        /* Убираем первую засечку (00), чтобы не торчала слева */
-        .tick:first-child::before { display: none; }
-
-        /* КОРОТКАЯ ЗАСЕЧКА (ПОЛЧАСА) */
+        /* Коротка риска (30 хв) */
         .tick::after {
             content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; 
-            width: 1px; height: 6px; /* Короче */
+            left: 50%; top: 0; width: 1px; height: 6px;
         }
 
-        /* ЦИФРА - стоит свободно */
+        /* Цифра (ПІД ЛІНІЄЮ) */
         .tick-label {
             position: absolute;
-            top: 15px; /* Под засечками */
+            top: 10px;
             left: 0;
             transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
             line-height: 1;
         }
-        /* 00 чуть правее */
-        .tick:first-child .tick-label { transform: none; left: 0; }
+        .tick:first-child .tick-label { left: 0; transform: none; }
 
-        /* Цвета */
+        /* Кольори */
         .s-0 { background-color: #b7e4c7; } 
         .s-1 { background-color: #ffb5a7; } 
         .s-2 { background-color: #fbf8cc; } 
@@ -167,25 +156,30 @@
         .s-gray { background-color: #222; }
 
         @keyframes blink {
-            0% { box-shadow: inset 0 0 0 2px rgba(255,255,255,1); }
-            50% { box-shadow: inset 0 0 0 2px rgba(255,255,255,0); }
-            100% { box-shadow: inset 0 0 0 2px rgba(255,255,255,1); }
+            0% { box-shadow: inset 0 0 0 2px #fff; }
+            50% { box-shadow: inset 0 0 0 2px transparent; }
+            100% { box-shadow: inset 0 0 0 2px #fff; }
         }
         .current-time { position: relative; z-index: 10; animation: blink 2s infinite; }
 
         /* --- 4. ЛЕГЕНДА --- */
         .legend {
-            display: flex; gap: 20px; 
+            display: flex; gap: 20px; padding: 20px 0;
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            /* Идет следом за графиком */
-            margin-top: 20px; 
+            margin-top: auto;
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
 
-        /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
+        /* --- 5. МОБІЛЬНА ВЕРСІЯ --- */
         @media (max-width: 768px) {
+            /* ПРАВКА 2: Шапка не липка на мобільному */
+            .header {
+                position: relative;
+                top: auto;
+            }
+
             .header-content { flex-wrap: nowrap; gap: 10px; }
             .select-wrapper { max-width: none; }
             
@@ -195,78 +189,65 @@
 
             .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
 
-            /* Ряд: Шкала | График */
-            .chart-layout { 
-                flex-direction: row; 
-                align-items: flex-start; /* Важно для высоты */
-            }
+            /* Ряд: Шкала | Графік */
+            .chart-layout { flexDirection: row; }
 
-            /* Шкала СЛЕВА */
+            /* Шкала ЗЛІВА */
             .chart-scale {
                 width: 40px;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                /* Фиксируем высоту графика, чтобы он появился! */
-                height: 1000px; 
+                height: 1000px;
                 border-top: none;
-                /* Линия разделителя справа */
-                border-right: 1px solid #333; 
+                border-right: 1px solid #333;
                 margin-top: 0;
-                gap: 1px;
             }
 
-            /* График СПРАВА */
+            /* Графік СПРАВА */
             .chart-bars {
                 flex: 1;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                /* Та же высота */
-                height: 1000px; 
-                gap: 1px;
+                height: 1000px;
             }
 
             .hour-cell { flex-direction: column; }
 
+            /* Тіки на мобільному */
             .tick {
                 width: 100%; height: 100%;
-                /* Убираем старые стили */
-                border-left: none; 
+                border-left: none;
+                border-top: 1px solid #333; /* Довга риска (година) */
             }
+            .tick:first-child { border-top: none; }
 
-            /* ДЛИННАЯ ЗАСЕЧКА (Справа, горизонтальная) */
-            .tick::before {
-                left: auto; right: 0; top: 0;
-                width: 10px; height: 1px;
-            }
-            .tick:first-child::before { display: none; }
-
-            /* КОРОТКАЯ ЗАСЕЧКА (Справа, 30 мин) */
+            /* Риска 30 хв (справа) */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* ЦИФРЫ (Слева от линии) */
+            /* Цифри зліва від лінії */
             .tick-label {
                 top: 0; 
-                left: auto; right: 12px; /* Отступ влево от линии */
+                left: auto; 
+                right: 8px; 
                 transform: translateY(-50%);
-                text-align: right; width: auto;
+                text-align: right;
+                width: auto;
             }
-            .tick:first-child .tick-label { transform: none; top: -6px; }
+            .tick:first-child .tick-label { transform: none; top: -7px; }
 
-            /* Легенда фиксирована внизу */
+            /* Легенда фіксована внизу */
             .legend {
                 position: fixed; bottom: 0; left: 0; width: 100%;
                 background: #000; border-top: 1px solid #222;
                 padding: 15px; z-index: 999; margin: 0;
-                /* Учет iPhone */
                 padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
             
-            /* Порядок: Шкала (1), График (2) */
             .chart-scale { order: 1; }
             .chart-bars { order: 2; }
         }
@@ -274,27 +255,25 @@
 </head>
 <body>
 
-    <div class="header-section">
-        <div class="main-container">
-            <div class="header-inner">
-                <div class="select-wrapper">
-                    <select id="queueSelect" onchange="renderChart()">
-                        <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
-                        <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
-                        <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
-                        <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
-                        <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
-                        <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
-                    </select>
-                    <div class="select-arrow">▼</div>
-                </div>
-                <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
+    <div class="header">
+        <div class="container header-content">
+            <div class="select-wrapper">
+                <select id="queueSelect" onchange="renderChart()">
+                    <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                    <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                    <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                    <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                    <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                    <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+                </select>
+                <div class="select-arrow">▼</div>
             </div>
+            <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
         </div>
     </div>
 
     <div class="chart-wrapper">
-        <div class="main-container">
+        <div class="container">
             <div class="chart-layout">
                 <div class="chart-bars" id="barsContainer"></div>
                 <div class="chart-scale" id="scaleContainer"></div>
