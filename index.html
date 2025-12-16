@@ -10,10 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ГЛОБАЛЬНЫЙ СБРОС --- */
+        /* --- 1. ОСНОВА --- */
         * { box-sizing: border-box; }
         
-        /* Убираем скроллбары */
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
         html { scrollbar-width: none; -ms-overflow-style: none; }
 
@@ -29,26 +28,25 @@
             overflow-x: hidden;
         }
 
-        /* ЕДИНЫЙ КОНТЕЙНЕР ДЛЯ ВЫРАВНИВАНИЯ */
-        .layout-container {
+        /* Ограничитель ширины (Центровщик) */
+        .container {
             width: 100%;
-            max-width: 1400px; /* Ограничитель ширины */
-            margin: 0 auto;    /* Центрирование */
-            padding: 0 20px;   /* Отступы по краям экрана */
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* --- ШАПКА --- */
-        .header-section {
+        /* --- 2. ШАПКА --- */
+        .header {
             background-color: #000000;
-            /* Линия только снизу, на всю ширину */
-            border-bottom: 1px solid #1a1a1a; 
+            border-bottom: 1px solid #1a1a1a;
             padding: 20px 0;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .header-controls {
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -56,7 +54,7 @@
             flex-wrap: wrap;
         }
 
-        .select-wrapper { position: relative; }
+        .select-wrapper { position: relative; flex-grow: 1; max-width: 300px; }
         select {
             appearance: none;
             background-color: #1a1a1a;
@@ -66,7 +64,7 @@
             font-size: 16px;
             border-radius: 8px;
             cursor: pointer;
-            min-width: 200px;
+            width: 100%;
             outline: none;
         }
         .select-arrow {
@@ -74,7 +72,7 @@
             pointer-events: none; color: #fff; font-size: 12px;
         }
 
-        .btn-check-queue {
+        .btn {
             text-decoration: none;
             background-color: #222;
             color: #fff;
@@ -84,190 +82,183 @@
             font-size: 16px;
             border: 1px solid #444;
             transition: 0.2s;
+            white-space: nowrap;
         }
-        .btn-check-queue:hover { background-color: #fff; color: #000; }
+        .btn:hover { background-color: #fff; color: #000; }
 
-        /* --- ГРАФИК --- */
-        .chart-wrapper { 
-            flex-grow: 1; 
-            width: 100%; 
-            padding-top: 40px; /* Отступ от шапки */
+        /* --- 3. ГРАФИК (Общая структура) --- */
+        .chart-wrapper {
+            flex-grow: 1;
+            padding-top: 40px;
+            display: flex;
+            justify-content: center;
         }
         
-        /* DESKTOP (Горизонтально) */
-        .timeline-grid { 
-            display: grid; 
-            grid-template-columns: repeat(48, 1fr); 
-            gap: 0; 
-            height: 100px; 
-            background-color: #000; /* Фон черный, чтобы не было дырок */
+        .chart-grid {
+            display: flex;
+            flex-direction: column; /* По умолчанию ПК: График сверху, Шкала снизу */
+            width: 100%;
         }
-        
-        .timeline-scale { 
-            display: grid; 
-            grid-template-columns: repeat(48, 1fr); 
-            margin-top: 0; 
-            background-color: #000000; 
-            padding-bottom: 10px; 
-            /* Верхняя граница шкалы соприкасается с графиком */
-            border-top: 1px solid #333; 
+
+        /* СЕТКА ГРАФИКА (Полоса) */
+        .timeline-bars {
+            display: grid;
+            grid-template-columns: repeat(48, 1fr);
+            grid-template-rows: 100%; /* Явная высота строки */
+            height: 100px;            /* Высота всего блока */
+            background-color: #000;
         }
-        
-        .scale-tick { 
+
+        /* СЕТКА ШКАЛЫ */
+        .timeline-scale {
+            display: grid;
+            grid-template-columns: repeat(48, 1fr);
+            border-top: 1px solid #333;
+            padding-top: 5px;
+        }
+
+        /* Деления шкалы */
+        .tick { 
             position: relative; 
-            height: 35px; 
+            height: 30px; 
             border-left: 1px solid #333; 
         }
-        /* Убираем границу у первого деления, чтобы не было "квадрата" слева */
-        .scale-tick:first-child { border-left: none; }
+        .tick:first-child { border-left: none; } /* Убираем левую границу у первого */
 
-        .scale-tick::before { content: ''; position: absolute; top: 0; left: 0; background: #fff; }
-        .scale-tick.major::before { width: 2px; height: 10px; }
-        .scale-tick.minor::before { width: 1px; height: 5px; opacity: 0.5; }
-        
-        /* Цифры смещаем, чтобы 00 было ровно под чертой */
-        .tick-label { position: absolute; top: 14px; left: -50%; transform: translateX(-50%); font-size: 13px; color: #888; }
-        
-        /* Особое правило для первой цифры 00 - прижимаем влево */
-        .scale-tick:first-child .tick-label { left: 0; transform: none; }
+        .tick::before { content: ''; position: absolute; top: 0; left: 0; background: #fff; }
+        .tick.major::before { width: 2px; height: 10px; }
+        .tick.minor::before { width: 1px; height: 5px; opacity: 0.5; }
+
+        .tick-label { 
+            position: absolute; top: 14px; left: -50%; transform: translateX(-50%); 
+            font-size: 12px; color: #888; 
+        }
+        .tick:first-child .tick-label { left: 0; transform: none; } /* 00 прижимаем влево */
 
         .bar { width: 100%; height: 100%; transition: background 0.3s; }
 
         /* ЦВЕТА */
-        .status-light { background-color: #b7e4c7; } 
-        .status-off { background-color: #ffb5a7; }   
-        .status-maybe { background-color: #fbf8cc; } 
-        .status-gray { background-color: #222; }
-        .status-sure { background-color: #e57373; }
+        .s-0 { background-color: #b7e4c7; } /* Свет есть */
+        .s-1 { background-color: #ffb5a7; } /* Нема */
+        .s-2 { background-color: #fbf8cc; } /* ХЗ */
+        .s-3 { background-color: #e57373; } /* Нове */
+        .s-gray { background-color: #222; }
 
-        /* АНИМАЦИЯ */
-        @keyframes pulse-border {
-            0% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3); }
-            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 1); }
-            100% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3); }
+        .current-time {
+            position: relative; z-index: 2;
+            box-shadow: inset 0 0 0 2px #fff;
         }
-        .current-time { position: relative; z-index: 2; animation: pulse-border 2s infinite ease-in-out; border-radius: 2px; }
 
-        /* ЛЕГЕНДА */
-        .legend { 
-            display: flex; gap: 30px; padding: 40px 0; 
-            font-size: 15px; color: #ccc; justify-content: center; flex-wrap: wrap; 
-            margin-top: auto; 
+        /* --- 4. ЛЕГЕНДА --- */
+        .legend {
+            display: flex; gap: 20px; padding: 40px 0;
+            justify-content: center; flex-wrap: wrap;
+            font-size: 14px; color: #ccc;
+            margin-top: auto;
         }
         .legend-item { display: flex; align-items: center; }
-        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
 
-        /* МОБИЛЬНАЯ ВЕРСИЯ */
+        /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 768px) {
-            .layout-container { padding: 0 20px; } /* Чуть меньше отступы */
+            .header-content { flex-wrap: nowrap; gap: 10px; }
+            .select-wrapper { max-width: none; }
+            .btn { padding: 12px 15px; font-size: 14px; }
             
-            .header-controls { flex-wrap: nowrap; gap: 10px; }
-            .select-wrapper { flex-grow: 1; min-width: 0; }
-            select { min-width: auto; width: 100%; padding-right: 30px; }
-            .btn-check-queue { flex-shrink: 0; padding: 12px 15px; font-size: 14px; }
-
-            .chart-wrapper { padding-top: 10px; } 
-
-            .chart-content { 
-                display: flex; 
-                flex-direction: row; 
-                height: auto; 
-                min-height: calc(100vh - 140px);
+            .chart-wrapper { padding-top: 10px; }
+            
+            /* Переключаем на горизонтальный режим (flex-row) */
+            .chart-grid {
+                flex-direction: row; /* Слева шкала, справа график */
+                height: auto;
+                min-height: calc(100vh - 140px); /* Растягиваем на весь экран */
             }
-            
-            .timeline-scale { 
-                width: 50px; 
-                display: grid; 
-                grid-template-columns: 1fr; 
-                grid-template-rows: repeat(48, 1fr); 
-                border-right: 1px solid #333; 
+
+            /* Шкала слева */
+            .timeline-scale {
+                width: 50px;
+                display: grid;
+                grid-template-columns: 1fr; /* 1 колонка */
+                grid-template-rows: repeat(48, 1fr); /* 48 строк */
                 border-top: none;
-                padding-bottom: 0; 
-                background-color: #000;
+                border-right: 1px solid #333;
+                padding-top: 0;
             }
-            
-            .timeline-grid { 
-                flex-grow: 1; 
-                display: grid; 
-                grid-template-columns: 1fr; 
-                grid-template-rows: repeat(48, 1fr); 
-                margin-top: 0; 
-                height: 1000px; 
-            }
-            
-            .scale-tick { width: 100%; height: 100%; border-top: 1px solid #333; border-left: none; }
-            /* Возвращаем границу для первого элемента на мобиле (там она верхняя) */
-            .scale-tick:first-child { border-left: none; border-top: 1px solid #333; }
-            
-            .scale-tick::before { top: 0; right: 0; left: auto; background: #fff; }
-            .scale-tick.major::before { width: 10px; height: 2px; }
-            .scale-tick.minor::before { width: 5px; height: 1px; }
-            
-            .tick-label { top: -8px; left: 5px; right: auto; transform: none; font-size: 12px; }
-            .scale-tick:first-child .tick-label { top: -8px; left: 5px; }
 
-            .legend { 
-                gap: 15px; padding: 20px 10px; font-size: 13px; 
-                position: sticky; bottom: 0; 
-                background: rgba(0,0,0,0.95); 
-                border-top: 1px solid #222; 
-                z-index: 200;
-                width: 100%;
-                margin: 0; /* Убираем margin у контейнера легенды */
+            /* График справа */
+            .timeline-bars {
+                flex-grow: 1;
+                display: grid;
+                grid-template-columns: 1fr; /* 1 колонка */
+                grid-template-rows: repeat(48, 1fr); /* 48 строк */
+                height: 1000px; /* Длинный скролл */
+            }
+
+            /* Поворачиваем тики */
+            .tick { width: 100%; height: 100%; border-left: none; border-top: 1px solid #333; }
+            .tick:first-child { border-top: 1px solid #333; } /* Возвращаем границу */
+            
+            .tick::before { top: 0; right: 0; left: auto; background: #fff; }
+            .tick.major::before { width: 10px; height: 2px; }
+            .tick.minor::before { width: 5px; height: 1px; }
+            
+            .tick-label { top: -8px; left: 5px; transform: none; right: auto; }
+            .tick:first-child .tick-label { left: 5px; }
+
+            /* Легенда липкая внизу */
+            .legend {
+                padding: 20px 10px; gap: 10px; font-size: 13px;
+                position: sticky; bottom: 0; background: rgba(0,0,0,0.95);
+                border-top: 1px solid #222;
+                margin-top: 0;
             }
             .legend-item { white-space: nowrap; }
-            
-            .adaptive-container { display: flex; flex-direction: row; width: 100%; }
-            .timeline-scale { order: 1; }
-            .timeline-grid { order: 2; }
-        }
-        
-        /* Порядок для ПК */
-        @media (min-width: 769px) {
-            .adaptive-container { display: flex; flex-direction: column; width: 100%; }
-            .timeline-grid { order: 1; }
-            .timeline-scale { order: 2; }
         }
     </style>
 </head>
 <body>
 
     <!-- ШАПКА -->
-    <div class="header-section">
-        <div class="layout-container">
-            <div class="header-controls">
-                <div class="select-wrapper">
-                    <select id="queueSelect" onchange="renderChart()">
-                        <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
-                        <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
-                        <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
-                        <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
-                        <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
-                        <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
-                    </select>
-                    <div class="select-arrow">▼</div>
-                </div>
-                <a href="https://off.energy.mk.ua/" target="_blank" class="btn-check-queue">Моя черга</a>
+    <div class="header">
+        <div class="container header-content">
+            <div class="select-wrapper">
+                <select id="queueSelect" onchange="renderChart()">
+                    <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                    <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                    <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                    <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                    <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                    <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+                </select>
+                <div class="select-arrow">▼</div>
             </div>
+            <a href="https://off.energy.mk.ua/" target="_blank" class="btn">Моя черга</a>
         </div>
     </div>
 
     <!-- ГРАФИК -->
     <div class="chart-wrapper">
-        <div class="layout-container">
-            <div class="adaptive-container">
-                <div class="timeline-scale" id="scaleContainer"></div>
-                <div class="timeline-grid" id="barsContainer"></div>
+        <div class="container">
+            <div class="chart-grid">
+                <!-- ВАЖНО: Порядок в HTML для ПК: График, потом Шкала -->
+                <!-- На мобильном мы меняем order через flex-direction (row vs column) -->
+                <!-- Но проще сделать так: -->
+                
+                <!-- Блок для ПК (верх) / Моб (право) -->
+                <div class="timeline-bars" id="barsContainer" style="order: 1;"></div>
+                
+                <!-- Блок для ПК (низ) / Моб (лево) -->
+                <div class="timeline-scale" id="scaleContainer" style="order: 2;"></div>
             </div>
         </div>
     </div>
 
     <!-- ЛЕГЕНДА -->
     <div class="legend">
-        <div class="legend-item"><div class="dot status-light"></div>Світло</div>
-        <div class="legend-item"><div class="dot status-off"></div>Нема</div>
-        <div class="legend-item"><div class="dot status-sure"></div>Нове(((</div>
-        <div class="legend-item"><div class="dot status-maybe"></div>ХЗ</div>
+        <div class="legend-item"><div class="dot s-0"></div>Світло</div>
+        <div class="legend-item"><div class="dot s-1"></div>Нема</div>
+        <div class="legend-item"><div class="dot s-3"></div>Нове(((</div>
+        <div class="legend-item"><div class="dot s-2"></div>ХЗ</div>
     </div>
 
 <script>
@@ -278,30 +269,29 @@
     // --- СОХРАНЕНИЕ ---
     function saveQueue(value) {
         try { localStorage.setItem('myQ', value); } catch(e){}
-        try { sessionStorage.setItem('myQ', value); } catch(e){}
         document.cookie = "myQ=" + value + "; path=/; max-age=31536000; SameSite=None; Secure";
     }
 
     function getSavedQueue() {
         let val = null;
-        if(!val) try { val = localStorage.getItem('myQ'); } catch(e){}
+        try { val = localStorage.getItem('myQ'); } catch(e){}
         if (!val) {
             const match = document.cookie.match(new RegExp('(^| )myQ=([^;]+)'));
             if (match) val = match[2];
         }
-        if(!val) try { val = sessionStorage.getItem('myQ'); } catch(e){}
         return val;
     }
 
     async function init() {
+        // Меняем порядок order для мобильного через JS, или просто CSS
+        // CSS Media query is better. Added styling above.
+        
         drawScale();
         
         const saved = getSavedQueue();
         if (saved) {
             const select = document.getElementById('queueSelect');
-            if ([...select.options].some(o => o.value === saved)) {
-                select.value = saved;
-            }
+            if ([...select.options].some(o => o.value === saved)) select.value = saved;
         }
 
         await loadData();
@@ -315,4 +305,66 @@
             const text = await response.text();
             const rows = text.split('\n');
             rows.forEach(row => {
-                cons
+                const cols = row.trim().split(','); // Убираем пробелы
+                if(cols.length < 2) return;
+                
+                // Чистим имя очереди от мусора
+                const queueName = cols[0].trim();
+                const values = cols.slice(1).map(v => parseInt(v));
+                scheduleData[queueName] = values;
+            });
+        } catch (error) { console.error(error); }
+    }
+
+    function drawScale() {
+        const container = document.getElementById('scaleContainer');
+        let html = '';
+        for (let i = 0; i < 48; i++) {
+            const isHour = (i % 2 === 0);
+            const label = isHour ? `<span class="tick-label">${(i/2).toString().padStart(2,'0')}</span>` : '';
+            const type = isHour ? 'major' : 'minor';
+            html += `<div class="tick ${type}">${label}</div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function renderChart() {
+        const queue = document.getElementById('queueSelect').value;
+        saveQueue(queue);
+
+        const container = document.getElementById('barsContainer');
+        // Если данных нет - по умолчанию 3 (Нове/Красный) или 2 (ХЗ)
+        // Чтобы было видно, что график работает
+        const data = scheduleData[queue] || new Array(48).fill(3); 
+
+        const now = new Date();
+        const currentIndex = (now.getHours() * 2) + (now.getMinutes() >= 30 ? 1 : 0);
+
+        let html = '';
+        data.forEach((status, index) => {
+            let cls = 's-gray';
+            if (status === 0) cls = 's-0';
+            if (status === 1) cls = 's-1';
+            if (status === 2) cls = 's-2';
+            if (status === 3) cls = 's-3';
+            
+            if (index === currentIndex) cls += ' current-time';
+            html += `<div class="bar ${cls}"></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Добавляем стили для переключения порядка на мобильном
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @media (max-width: 768px) {
+            #barsContainer { order: 2; }
+            #scaleContainer { order: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    init();
+</script>
+</body>
+</html>
