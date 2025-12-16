@@ -85,7 +85,7 @@
 
         /* --- 3. ГРАФИК --- */
         .chart-wrapper {
-            /* flex-grow убран, чтобы контент не растягивался на весь экран */
+            flex-grow: 1;
             padding-top: 40px;
             width: 100%;
         }
@@ -96,6 +96,7 @@
             width: 100%;
         }
 
+        /* ПОЛОСА ГРАФИКА */
         .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
@@ -120,6 +121,7 @@
             transition: background 0.3s;
         }
 
+        /* ШКАЛА ВРЕМЕНИ */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
@@ -129,14 +131,24 @@
             padding-top: 8px;
         }
 
-        .tick { position: relative; height: 30px; border-left: 1px solid #333; }
+        .tick {
+            position: relative;
+            height: 30px;
+            border-left: 1px solid #333;
+        }
         .tick:first-child { border-left: none; }
 
         .tick-label {
-            position: absolute; top: 8px; left: -50%; transform: translateX(-50%);
+            position: absolute; 
+            top: 8px; 
+            /* ИСПРАВЛЕНИЕ: Прижимаем к началу блока (где линия) */
+            left: 0; 
+            /* Сдвигаем влево на половину ширины самой цифры */
+            transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
         }
-        .tick:first-child .tick-label { left: 0; transform: none; }
+        /* 00 оставляем на месте, чтобы не резалось */
+        .tick:first-child .tick-label { transform: none; }
 
         /* ЦВЕТА */
         .s-0 { background-color: #b7e4c7; } 
@@ -145,7 +157,7 @@
         .s-3 { background-color: #e57373; } 
         .s-gray { background-color: #222; }
 
-        /* АНИМАЦИЯ МИГАНИЯ (БЕЛЫЙ -> ПРОЗРАЧНЫЙ) */
+        /* АНИМАЦИЯ МИГАНИЯ */
         @keyframes blink-border {
             0% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 1); }
             50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0); }
@@ -161,10 +173,9 @@
         /* --- 4. ЛЕГЕНДА --- */
         .legend {
             display: flex; gap: 20px; 
-            padding: 30px 0; /* Отступ сверху и снизу */
+            padding: 30px 0; 
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            /* Убрали margin-top: auto, чтобы не прилипало к низу экрана на ПК */
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
@@ -215,20 +226,24 @@
             }
             .tick:first-child { border-top: none; }
             
+            /* Цифры на мобильном: центрируем относительно верхней линии */
             .tick-label { 
-                top: -8px; left: 0; transform: none; right: 8px; 
-                text-align: right; width: auto; 
+                top: 0; 
+                left: auto; 
+                right: 8px;
+                transform: translateY(-50%); /* Центр по вертикали на линии */
+                text-align: right; 
+                width: auto;
             }
-            .tick:first-child .tick-label { top: -8px; left: 0; }
+            .tick:first-child .tick-label { transform: none; top: -5px; }
 
             .legend {
                 padding: 15px; gap: 15px; font-size: 13px;
                 position: sticky; bottom: 0; 
-                background: #000; /* Непрозрачный фон */
+                background: #000;
                 border-top: 1px solid #222; 
                 margin-top: 0;
                 width: 100%;
-                /* ОЧЕНЬ ВЫСОКИЙ Z-INDEX */
                 z-index: 9999;
             }
             
