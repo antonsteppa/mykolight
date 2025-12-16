@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Графік відключень Миколаїв</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/lightning-bolt.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. ОСНОВА --- */
+        /* --- 1. БАЗА --- */
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
         html { scrollbar-width: none; }
@@ -37,12 +37,16 @@
         /* --- 2. ШАПКА --- */
         .header {
             background-color: #000000;
-            /* ПРАВКА 1: Прибрали лінію знизу */
-            border-bottom: none; 
+            /* Убрали линию, как вы просили */
             padding: 20px 0;
-            position: sticky; /* На ПК залишається липкою */
-            top: 0;
+            /* Не липкая на мобильном по умолчанию */
+            position: relative; 
             z-index: 100;
+        }
+
+        /* На ПК делаем липкой для удобства (по желанию можно убрать sticky) */
+        @media (min-width: 769px) {
+            .header { position: sticky; top: 0; border-bottom: 1px solid #1a1a1a; }
         }
 
         .header-content {
@@ -80,25 +84,25 @@
             display: flex; align-items: center; gap: 8px;
             white-space: nowrap;
         }
-        .btn-search:hover { background-color: #333; color: #fff; border-color: #555; }
 
-        /* --- 3. ГРАФИК (DESKTOP DEFAULT) --- */
+        /* --- 3. ГРАФИК --- */
         .chart-wrapper {
             width: 100%;
             padding-top: 40px;
-            padding-bottom: 20px;
+            padding-bottom: 40px;
         }
 
         .chart-layout {
             display: flex;
-            flex-direction: column;
             width: 100%;
+            /* ПК: Колонка (График сверху, Шкала снизу) */
+            flex-direction: column; 
         }
 
-        /* Полоса з кубиками */
+        /* ПОЛОСА ГРАФИКА */
         .chart-bars {
             display: grid;
-            grid-template-columns: repeat(24, 1fr);
+            grid-template-columns: repeat(24, 1fr); /* 24 часа */
             height: 80px;
             gap: 1px;
             width: 100%;
@@ -114,41 +118,56 @@
         }
         .half-hour { flex: 1; height: 100%; transition: background 0.3s; }
 
-        /* Шкала */
+        /* ШКАЛА (Новая верстка) */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
-            margin-top: 5px;
             width: 100%;
-            height: 30px;
-            border-top: 1px solid #333;
+            height: 40px;
+            border-top: 1px solid #333; /* Главная линия */
+            margin-top: 2px;
+            gap: 1px; /* Синхрон с графиком */
         }
 
         .tick {
             position: relative;
+            width: 100%;
             height: 100%;
-            border-left: 1px solid #333;
+            /* Убрали border! Рисуем палочки */
         }
-        .tick:first-child { border-left: none; }
 
-        /* Коротка риска (30 хв) */
+        /* ДЛИННАЯ ПАЛОЧКА (Час) - Слева сверху */
+        .tick::before {
+            content: ''; position: absolute; 
+            top: 0; left: 0;
+            width: 1px; height: 10px; 
+            background: #fff;
+        }
+        /* Убираем первую палочку (00), чтобы не торчала */
+        .tick:first-child::before { display: none; }
+
+        /* КОРОТКАЯ ПАЛОЧКА (30 мин) - По центру */
         .tick::after {
-            content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; width: 1px; height: 6px;
+            content: ''; position: absolute;
+            top: 0; left: 50%;
+            width: 1px; height: 5px; 
+            background: #555;
         }
 
-        /* Цифра (ПІД ЛІНІЄЮ) */
+        /* ЦИФРА */
         .tick-label {
             position: absolute;
-            top: 10px;
-            left: 0;
+            top: 12px; /* Под палочками */
+            left: 0;   /* Ровно под началом часа */
             transform: translateX(-50%);
-            font-size: 12px; color: #666; font-weight: 500;
-            line-height: 1;
+            font-size: 12px; color: #888;
+            width: 30px; text-align: center;
         }
-        .tick:first-child .tick-label { left: 0; transform: none; }
+        /* 00 чуть правее */
+        .tick:first-child .tick-label { transform: none; text-align: left; }
 
-        /* Кольори */
+
+        /* Цвета */
         .s-0 { background-color: #b7e4c7; } 
         .s-1 { background-color: #ffb5a7; } 
         .s-2 { background-color: #fbf8cc; } 
@@ -167,19 +186,13 @@
             display: flex; gap: 20px; padding: 20px 0;
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            margin-top: auto;
+            margin-top: 0;
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
 
-        /* --- 5. МОБІЛЬНА ВЕРСІЯ --- */
+        /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 768px) {
-            /* ПРАВКА 2: Шапка не липка на мобільному */
-            .header {
-                position: relative;
-                top: auto;
-            }
-
             .header-content { flex-wrap: nowrap; gap: 10px; }
             .select-wrapper { max-width: none; }
             
@@ -189,58 +202,63 @@
 
             .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
 
-            /* Ряд: Шкала | Графік */
-            .chart-layout { flexDirection: row; }
-
-            /* Шкала ЗЛІВА */
-            .chart-scale {
-                width: 40px;
-                display: grid;
-                grid-template-columns: 1fr;
-                grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
-                border-top: none;
-                border-right: 1px solid #333;
-                margin-top: 0;
+            /* РЯД (Шкала слева, График справа) */
+            .chart-layout { 
+                flex-direction: row; 
             }
 
-            /* Графік СПРАВА */
+            /* ШКАЛА (Вертикальная) */
+            .chart-scale {
+                width: 40px; /* Фиксированная ширина */
+                height: 1200px; /* ЯВНАЯ ВЫСОТА, ЧТОБЫ НЕ ПРОПАДАЛ */
+                
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(24, 1fr); /* 24 строки */
+                
+                border-top: none;
+                border-right: 1px solid #333; /* Вертикальная линия */
+                margin-top: 0;
+                gap: 1px;
+            }
+
+            /* ГРАФИК (Вертикальный) */
             .chart-bars {
                 flex: 1;
                 display: grid;
                 grid-template-columns: 1fr;
-                grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
+                grid-template-rows: repeat(24, 1fr); /* 24 строки */
+                height: 1200px; /* ЯВНАЯ ВЫСОТА */
             }
 
             .hour-cell { flex-direction: column; }
 
-            /* Тіки на мобільному */
-            .tick {
-                width: 100%; height: 100%;
-                border-left: none;
-                border-top: 1px solid #333; /* Довга риска (година) */
-            }
-            .tick:first-child { border-top: none; }
+            /* ТИКИ НА МОБИЛЬНОМ */
+            .tick { width: 100%; height: 100%; }
 
-            /* Риска 30 хв (справа) */
+            /* Длинная палочка (Час) - Справа сверху */
+            .tick::before {
+                left: auto; right: 0; top: 0;
+                width: 10px; height: 1px;
+            }
+            .tick:first-child::before { display: none; }
+
+            /* Короткая палочка (30 мин) - Справа посередине */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* Цифри зліва від лінії */
+            /* Цифра */
             .tick-label {
-                top: 0; 
-                left: auto; 
-                right: 8px; 
+                top: 0; left: auto; 
+                right: 12px; /* Отступ влево от палочек */
                 transform: translateY(-50%);
-                text-align: right;
-                width: auto;
+                text-align: right; width: auto;
             }
             .tick:first-child .tick-label { transform: none; top: -7px; }
 
-            /* Легенда фіксована внизу */
+            /* Легенда */
             .legend {
                 position: fixed; bottom: 0; left: 0; width: 100%;
                 background: #000; border-top: 1px solid #222;
