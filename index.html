@@ -27,11 +27,10 @@
             overflow-x: hidden;
         }
 
-        /* ГЛАВНЫЙ КОНТЕЙНЕР (Держит ширину) */
         .main-container {
             width: 100%;
             max-width: 1400px;
-            margin: 0 auto; /* Центрируем по горизонтали */
+            margin: 0 auto;
             padding: 0 20px;
         }
 
@@ -40,7 +39,7 @@
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
             padding: 20px 0;
-            position: relative; /* Не липкая */
+            position: relative;
         }
 
         .header-inner {
@@ -93,29 +92,27 @@
         
         .chart-layout {
             display: flex;
-            flex-direction: column; /* ПК: График сверху, шкала снизу */
+            flex-direction: column;
             width: 100%;
         }
 
         /* ПОЛОСА ГРАФИКА */
         .chart-bars {
             display: grid;
-            /* 24 колонки (часы) */
             grid-template-columns: repeat(24, 1fr);
             grid-template-rows: 100%;
             height: 80px;
-            gap: 1px; /* Зазор между часами */
+            gap: 1px;
         }
 
-        /* БЛОК ЧАСА (Внутри 2 половинки) */
         .hour-cell {
             display: flex;
-            flex-direction: row; /* Половинки слева направо */
+            flex-direction: row;
             width: 100%;
             height: 100%;
-            border-radius: 3px; /* Скругление */
+            border-radius: 3px;
             overflow: hidden;
-            background-color: #111; /* Фон пустой ячейки */
+            background-color: #111;
         }
 
         .half-hour {
@@ -128,25 +125,38 @@
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
-            gap: 1px; /* Чтобы совпадало с графиком */
+            gap: 1px; /* Синхронизация зазоров */
             margin-top: 5px;
             border-top: 1px solid #333;
-            padding-top: 5px;
+            padding-top: 8px; /* Чуть больше места для цифр */
         }
 
         .tick {
             position: relative;
             height: 30px;
+            /* Рисуем черточку слева (начало часа) */
             border-left: 1px solid #333;
         }
         .tick:first-child { border-left: none; }
 
         .tick-label {
-            position: absolute; top: 8px; left: -50%; transform: translateX(-50%);
-            font-size: 12px; color: #666; font-weight: 500;
+            position: absolute;
+            top: 5px; 
+            /* ВАЖНО: Прижимаем к левому краю (к черте) и центрируем относительно черты */
+            left: -0.5px; 
+            transform: translateX(-50%);
+            font-size: 12px; 
+            color: #666; 
+            font-weight: 500;
+            background-color: #000; /* Чтобы перекрывать линию если надо */
+            padding: 0 2px;
         }
-        /* Первую цифру (00) равняем влево */
-        .tick:first-child .tick-label { left: 0; transform: none; }
+        
+        /* 00 прижимаем чуть правее, чтобы не резалось */
+        .tick:first-child .tick-label { 
+            left: 0; 
+            transform: none; 
+        }
 
         /* ЦВЕТА */
         .s-0 { background-color: #b7e4c7; } 
@@ -175,57 +185,61 @@
             .header-inner { gap: 10px; }
             .select-wrapper { max-width: none; }
             
-            /* Кнопка-лупа */
             .btn-search { padding: 12px; }
             .btn-search span { display: none; }
             .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
 
             .chart-wrapper { padding-top: 20px; }
 
-            /* Переключаем раскладку в ряд: Шкала | График */
             .chart-layout {
                 flex-direction: row; 
                 min-height: calc(100vh - 140px);
                 height: auto;
             }
 
-            /* Шкала (Слева) */
+            /* Шкала слева */
             .chart-scale {
                 width: 50px;
                 display: grid;
                 grid-template-columns: 1fr;
-                /* ВАЖНО: 24 строки на мобильном */
-                grid-template-rows: repeat(24, 1fr); 
+                grid-template-rows: repeat(24, 1fr); /* 24 строки */
                 margin-top: 0;
                 border-top: none;
                 border-right: 1px solid #333;
                 padding-top: 0;
-                padding-right: 5px;
+                padding-right: 0;
             }
 
-            /* График (Справа) */
+            /* График справа */
             .chart-bars {
                 flex-grow: 1;
                 display: grid;
                 grid-template-columns: 1fr;
-                /* ВАЖНО: 24 строки на мобильном */
                 grid-template-rows: repeat(24, 1fr); 
-                height: 1000px; /* Длинная колбаса */
+                height: 1000px;
             }
 
-            /* Часовой блок вертикальный */
-            .hour-cell {
-                flex-direction: column; /* 00-30 сверху, 30-60 снизу */
-            }
+            .hour-cell { flex-direction: column; }
 
-            /* Поворот тиков шкалы */
-            .tick { width: 100%; height: 100%; border-left: none; border-top: 1px solid #333; }
+            .tick { 
+                width: 100%; height: 100%; 
+                border-left: none; 
+                border-top: 1px solid #333; /* Черта сверху */
+            }
             .tick:first-child { border-top: none; }
             
-            .tick-label { top: -8px; left: 0; transform: none; right: auto; text-align: right; width: 100%; }
-            .tick:first-child .tick-label { top: -8px; left: 0; }
+            /* Цифры на мобильном */
+            .tick-label { 
+                top: -0.5px; /* Прижимаем к верхней линии */
+                left: auto; 
+                right: 8px; /* Отступ от графика справа */
+                transform: translateY(-50%); /* Центрируем по вертикали относительно линии */
+                text-align: right; 
+                width: auto;
+            }
+            /* 00 чуть ниже */
+            .tick:first-child .tick-label { top: 0; transform: none; }
 
-            /* Легенда липкая */
             .legend {
                 padding: 15px; gap: 15px; font-size: 13px;
                 position: sticky; bottom: 0; background: rgba(0,0,0,0.95);
@@ -233,7 +247,6 @@
                 width: 100%;
             }
             
-            /* Меняем порядок визуально через CSS Order */
             .chart-scale { order: 1; }
             .chart-bars { order: 2; }
         }
@@ -351,17 +364,13 @@
         const currentIndex = (now.getHours() * 2) + (now.getMinutes() >= 30 ? 1 : 0);
 
         let html = '';
-        
-        // Цикл по ЧАСАМ (0..23) -> 24 ячейки
         for (let i = 0; i < 48; i += 2) {
-            // Данные для первой и второй половины часа
             const stat1 = data[i];
             const stat2 = data[i+1];
 
             let cls1 = getStatusClass(stat1);
             let cls2 = getStatusClass(stat2);
 
-            // Подсветка (внутрь конкретной половинки)
             if (i === currentIndex) cls1 += ' current-time';
             if (i + 1 === currentIndex) cls2 += ' current-time';
 
