@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Графік відключень Миколаїв</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/lightning-bolt.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,9 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. БАЗА --- */
+        /* --- 1. ОСНОВА --- */
         * { box-sizing: border-box; }
-        
+        ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
+        html { scrollbar-width: none; }
+
         body {
             background-color: #000000;
             color: #ffffff;
@@ -23,20 +25,17 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            /* Отступ снизу для мобильной легенды */
-            padding-bottom: 80px; 
         }
 
-        /* ГЛАВНЫЙ ОГРАНИЧИТЕЛЬ - ОТСТУПЫ ОТ КРАЕВ */
-        .layout {
+        .main-container {
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px; /* Гарантированный отступ 20px слева и справа */
+            padding: 0 20px;
         }
 
         /* --- 2. ШАПКА --- */
-        .header {
+        .header-section {
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
             padding: 20px 0;
@@ -45,7 +44,7 @@
             z-index: 100;
         }
 
-        .header-content {
+        .header-inner {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -81,20 +80,21 @@
             white-space: nowrap;
         }
 
-        /* --- 3. ГРАФИК (DESKTOP) --- */
-        .chart-section {
+        /* --- 3. ГРАФИК --- */
+        .chart-wrapper {
+            width: 100%;
             padding-top: 40px;
-            width: 100%;
+            padding-bottom: 40px;
         }
-
-        .chart-grid {
+        
+        .chart-layout {
             display: flex;
-            flex-direction: column; /* Вертикально */
+            flex-direction: column; /* ПК: вертикально */
             width: 100%;
         }
 
-        /* 1. ПОЛОСА ГРАФИКА */
-        .bars-container {
+        /* ГРАФИК (Ячейки) */
+        .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
             height: 80px;
@@ -112,54 +112,52 @@
         }
         .half-hour { flex: 1; height: 100%; transition: background 0.3s; }
 
-        /* 2. ШКАЛА (Линейка) */
-        .scale-container {
+        /* ШКАЛА (Чистая линейка) */
+        .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
             width: 100%;
-            height: 40px;
-            border-top: 1px solid #333; /* Линия разделителя */
-            margin-top: 5px;
+            margin-top: 0;
+            /* Главная линия разделителя */
+            border-top: 1px solid #333; 
+            padding-top: 0;
             gap: 1px;
         }
 
+        /* Блок деления */
         .tick {
             position: relative;
-            height: 100%;
-            /* Длинная риска слева */
-            border-left: 1px solid #333; 
+            height: 40px;
+            /* Убрали border-left, чтобы не черкать цифры */
         }
-        .tick:first-child { border-left: none; }
 
-        /* Короткая риска (30 мин) посередине */
+        /* ДЛИННАЯ ЗАСЕЧКА (ЧАС) - рисуем отдельно */
+        .tick::before {
+            content: ''; position: absolute; background: #333;
+            left: 0; top: 0; 
+            width: 1px; height: 10px; /* Только сверху */
+        }
+        /* Убираем первую засечку (00), чтобы не торчала слева */
+        .tick:first-child::before { display: none; }
+
+        /* КОРОТКАЯ ЗАСЕЧКА (ПОЛЧАСА) */
         .tick::after {
             content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; width: 1px; height: 6px;
+            left: 50%; top: 0; 
+            width: 1px; height: 6px; /* Короче */
         }
 
-        /* Цифра */
+        /* ЦИФРА - стоит свободно */
         .tick-label {
             position: absolute;
-            top: 12px; /* Сдвигаем ВНИЗ от линии */
-            left: 0;   /* Прижимаем к началу тика */
-            transform: translateX(-50%); /* Центрируем относительно начала */
-            font-size: 12px; color: #666; 
-            font-weight: 500;
+            top: 15px; /* Под засечками */
+            left: 0;
+            transform: translateX(-50%);
+            font-size: 12px; color: #666; font-weight: 500;
             line-height: 1;
         }
         /* 00 чуть правее */
-        .tick:first-child .tick-label { transform: none; left: -3px; }
-
-
-        /* --- 4. ЛЕГЕНДА (DESKTOP) --- */
-        .legend {
-            display: flex; gap: 20px; 
-            padding: 30px 0;
-            justify-content: center; flex-wrap: wrap;
-            font-size: 14px; color: #ccc;
-        }
-        .legend-item { display: flex; align-items: center; }
-        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
+        .tick:first-child .tick-label { transform: none; left: 0; }
 
         /* Цвета */
         .s-0 { background-color: #b7e4c7; } 
@@ -175,6 +173,16 @@
         }
         .current-time { position: relative; z-index: 10; animation: blink 2s infinite; }
 
+        /* --- 4. ЛЕГЕНДА --- */
+        .legend {
+            display: flex; gap: 20px; 
+            justify-content: center; flex-wrap: wrap;
+            font-size: 14px; color: #ccc;
+            /* Идет следом за графиком */
+            margin-top: 20px; 
+        }
+        .legend-item { display: flex; align-items: center; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
 
         /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 768px) {
@@ -185,99 +193,112 @@
             .btn-search span { display: none; }
             .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
 
-            .chart-section { padding-top: 20px; }
+            .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
 
-            /* Переключаем на РЯД */
-            .chart-grid {
+            /* Ряд: Шкала | График */
+            .chart-layout { 
                 flex-direction: row; 
-                align-items: flex-start;
+                align-items: flex-start; /* Важно для высоты */
             }
 
             /* Шкала СЛЕВА */
-            .scale-container {
-                width: 40px; /* Фикс ширина */
-                height: 1000px; /* Высота под график */
+            .chart-scale {
+                width: 40px;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                
-                margin-top: 0;
+                /* Фиксируем высоту графика, чтобы он появился! */
+                height: 1000px; 
                 border-top: none;
-                border-right: 1px solid #333; /* Линия справа */
+                /* Линия разделителя справа */
+                border-right: 1px solid #333; 
+                margin-top: 0;
+                gap: 1px;
             }
 
             /* График СПРАВА */
-            .bars-container {
+            .chart-bars {
                 flex: 1;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
+                /* Та же высота */
+                height: 1000px; 
+                gap: 1px;
             }
 
             .hour-cell { flex-direction: column; }
 
-            /* ТИКИ НА МОБИЛЬНОМ */
             .tick {
                 width: 100%; height: 100%;
-                border-left: none;
-                border-top: 1px solid #333; /* Риска сверху */
+                /* Убираем старые стили */
+                border-left: none; 
             }
-            .tick:first-child { border-top: none; }
 
-            /* Короткая риска (справа) */
+            /* ДЛИННАЯ ЗАСЕЧКА (Справа, горизонтальная) */
+            .tick::before {
+                left: auto; right: 0; top: 0;
+                width: 10px; height: 1px;
+            }
+            .tick:first-child::before { display: none; }
+
+            /* КОРОТКАЯ ЗАСЕЧКА (Справа, 30 мин) */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* Цифра (СЛЕВА) */
+            /* ЦИФРЫ (Слева от линии) */
             .tick-label {
                 top: 0; 
-                left: auto; 
-                right: 10px; /* Отступ от линии */
+                left: auto; right: 12px; /* Отступ влево от линии */
                 transform: translateY(-50%);
-                text-align: right;
-                width: auto;
+                text-align: right; width: auto;
             }
-            .tick:first-child .tick-label { transform: none; top: -7px; }
+            .tick:first-child .tick-label { transform: none; top: -6px; }
 
-            /* ЛЕГЕНДА (MOBILE) */
+            /* Легенда фиксирована внизу */
             .legend {
                 position: fixed; bottom: 0; left: 0; width: 100%;
                 background: #000; border-top: 1px solid #222;
                 padding: 15px; z-index: 999; margin: 0;
+                /* Учет iPhone */
+                padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
             
-            /* Меняем порядок: Шкала слева, График справа */
-            .scale-container { order: 1; }
-            .bars-container { order: 2; }
+            /* Порядок: Шкала (1), График (2) */
+            .chart-scale { order: 1; }
+            .chart-bars { order: 2; }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="layout header-content">
-            <div class="select-wrapper">
-                <select id="queueSelect" onchange="renderChart()">
-                    <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
-                    <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
-                    <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
-                    <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
-                    <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
-                    <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
-                </select>
-                <div class="select-arrow">▼</div>
+    <div class="header-section">
+        <div class="main-container">
+            <div class="header-inner">
+                <div class="select-wrapper">
+                    <select id="queueSelect" onchange="renderChart()">
+                        <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                        <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                        <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                        <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                        <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                        <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+                    </select>
+                    <div class="select-arrow">▼</div>
+                </div>
+                <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
             </div>
-            <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
         </div>
     </div>
 
-    <div class="layout chart-section">
-        <div class="chart-grid">
-            <div class="bars-container" id="barsContainer"></div>
-            <div class="scale-container" id="scaleContainer"></div>
+    <div class="chart-wrapper">
+        <div class="main-container">
+            <div class="chart-layout">
+                <div class="chart-bars" id="barsContainer"></div>
+                <div class="chart-scale" id="scaleContainer"></div>
+            </div>
         </div>
     </div>
 
