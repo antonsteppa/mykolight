@@ -278,3 +278,107 @@
         <div class="main-container">
             <div class="header-inner">
                 <div class="select-wrapper">
+                    <select id="queueSelect" onchange="renderChart()">
+                        <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                        <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                        <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                        <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                        <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                        <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+                    </select>
+                    <div class="select-arrow">▼</div>
+                </div>
+                <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-wrapper">
+        <div class="main-container">
+            <div class="chart-layout">
+                <div class="chart-bars" id="barsContainer"></div>
+                <div class="chart-scale" id="scaleContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="dot s-0"></div>Світло</div>
+        <div class="legend-item"><div class="dot s-1"></div>Нема</div>
+        <div class="legend-item"><div class="dot s-3"></div>Нове(((</div>
+        <div class="legend-item"><div class="dot s-2"></div>ХЗ</div>
+    </div>
+
+<script>
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJg7LTSiNAdsEepSRtGZp_ox-XKbHndIE7MwOs4VXiFH8-eqIOMJoZKvfmq7O59jWqDwj1Yf02NAkD/pub?output=csv';
+    let scheduleData = {};
+
+    function saveQueue(val) {
+        try { localStorage.setItem('myQ', val); } catch(e){}
+        document.cookie = "myQ="+val+"; path=/; max-age=31536000";
+    }
+    function getSavedQueue() {
+        let v = null;
+        try { v = localStorage.getItem('myQ'); } catch(e){}
+        if(!v) { const m = document.cookie.match(/myQ=([^;]+)/); if(m) v=m[1]; }
+        return v;
+    }
+
+    async function init() {
+        drawScale();
+        const saved = getSavedQueue();
+        if (saved) {
+            const el = document.getElementById('queueSelect');
+            if([...el.options].some(o=>o.value===saved)) el.value = saved;
+        }
+        await loadData();
+        renderChart();
+        setInterval(renderChart, 60000);
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+            const txt = await res.text();
+            txt.split('\n').forEach(row => {
+                const c = row.trim().split(',');
+                if(c.length > 1) scheduleData[c[0].trim()] = c.slice(1).map(v=>parseInt(v));
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    function drawScale() {
+        const el = document.getElementById('scaleContainer');
+        let html = '';
+        for(let i=0; i<24; i++) {
+            const t = i.toString().padStart(2,'0');
+            html += `<div class="tick"><span class="tick-label">${t}</span></div>`;
+        }
+        el.innerHTML = html;
+    }
+
+    function renderChart() {
+        const q = document.getElementById('queueSelect').value;
+        saveQueue(q);
+        const el = document.getElementById('barsContainer');
+        const data = scheduleData[q] || Array(48).fill(3);
+        
+        const now = new Date();
+        const curIdx = (now.getHours()*2) + (now.getMinutes()>=30?1:0);
+
+        let html = '';
+        for(let i=0; i<48; i+=2) {
+            const s1 = data[i], s2 = data[i+1];
+            let c1 = `s-${s1}`, c2 = `s-${s2}`;
+            if(i === curIdx) c1 += ' current-time';
+            if(i+1 === curIdx) c2 += ' current-time';
+            
+            html += `<div class="hour-cell"><div class="half-hour ${c1}"></div><div class="half-hour ${c2}"></div></div>`;
+        }
+        el.innerHTML = html;
+    }
+
+    init();
+</script>
+</body>
+</html>
