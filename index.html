@@ -9,7 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
+        /* --- ГЛОБАЛЬНЫЙ СБРОС --- */
         * { box-sizing: border-box; }
+        
+        /* Скрываем скроллбары полностью (убирает серые квадраты) */
+        ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
+        html { scrollbar-width: none; -ms-overflow-style: none; }
+
         body {
             background-color: #000000;
             color: #ffffff;
@@ -19,21 +25,36 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
-        /* ШАПКА */
-        .header-controls {
+        /* Общий контейнер-ограничитель ширины */
+        .container-limit {
+            width: 100%;
+            max-width: 1400px; /* Та же ширина, что и у графика */
+            margin: 0 auto;    /* Центрирование */
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
+        }
+
+        /* --- ШАПКА --- */
+        .header-section {
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
             position: sticky;
             top: 0;
             z-index: 100;
+            padding: 20px 40px; /* Отступы снаружи */
+        }
+
+        .header-controls {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .select-wrapper { position: relative; }
@@ -67,13 +88,41 @@
         }
         .btn-check-queue:hover { background-color: #fff; color: #000; }
 
-        /* ГРАФИК */
-        .chart-wrapper { flex-grow: 1; width: 100%; display: flex; justify-content: center; }
-        .chart-content { width: 100%; max-width: 1400px; }
+        /* --- ГРАФИК --- */
+        .chart-wrapper { 
+            flex-grow: 1; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            padding: 0 40px; /* Отступы как у шапки */
+        }
+        
+        /* Внутренний блок графика тоже ограничен 1400px */
+        .chart-content { 
+            width: 100%; 
+            max-width: 1400px; 
+        }
 
         /* DESKTOP (Горизонтально) */
-        .timeline-grid { display: grid; grid-template-columns: repeat(48, 1fr); gap: 0; height: 100px; border-bottom: 1px solid #333; margin-top: 20px; }
-        .timeline-scale { display: grid; grid-template-columns: repeat(48, 1fr); margin-top: 0; background-color: #050505; padding-bottom: 10px; }
+        .timeline-grid { 
+            display: grid; 
+            grid-template-columns: repeat(48, 1fr); 
+            gap: 0; 
+            height: 100px; 
+            /* Убрали нижнюю границу, чтобы не двоилась со шкалой */
+            /* Убрали margin-top, заменили на padding у контейнера */
+            margin-top: 40px; 
+        }
+        
+        .timeline-scale { 
+            display: grid; 
+            grid-template-columns: repeat(48, 1fr); 
+            margin-top: 0; 
+            /* Цвет фона такой же как у body, чтобы не было серых блоков */
+            background-color: #000000; 
+            padding-bottom: 10px; 
+            border-top: 1px solid #333; /* Линия разделителя здесь */
+        }
         
         .scale-tick { position: relative; height: 35px; border-left: 1px solid #333; }
         .scale-tick::before { content: ''; position: absolute; top: 0; left: 0; background: #fff; }
@@ -99,21 +148,61 @@
         .current-time { position: relative; z-index: 2; animation: pulse-border 2s infinite ease-in-out; border-radius: 2px; }
 
         /* ЛЕГЕНДА */
-        .legend { display: flex; gap: 30px; padding: 30px; font-size: 15px; color: #ccc; justify-content: center; flex-wrap: wrap; background: #000; }
+        .legend { 
+            display: flex; gap: 30px; padding: 30px; 
+            font-size: 15px; color: #ccc; justify-content: center; flex-wrap: wrap; 
+            background: #000; 
+            margin-top: auto; /* Прижимаем к низу если контента мало */
+        }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 10px; }
 
         /* МОБИЛЬНАЯ ВЕРСИЯ */
         @media (max-width: 768px) {
-            .header-controls { padding: 15px; gap: 10px; flex-wrap: nowrap; }
+            .header-section { padding: 15px 20px; } /* Меньше отступы по краям */
+            
+            .container-limit { 
+                flex-wrap: nowrap; /* Запрещаем перенос кнопок */
+                gap: 10px; 
+            }
+            
+            .header-controls {
+                flex-wrap: nowrap;
+                padding: 0;
+            }
+
             .select-wrapper { flex-grow: 1; min-width: 0; }
             select { min-width: auto; width: 100%; padding-right: 30px; }
             .btn-check-queue { flex-shrink: 0; padding: 12px 15px; font-size: 14px; }
 
-            .chart-content { display: flex; flex-direction: row; height: auto; min-height: calc(100vh - 140px); }
+            .chart-wrapper { padding: 0; } /* Убираем отступы для графика на моб */
+
+            .chart-content { 
+                display: flex; 
+                flex-direction: row; 
+                height: auto; 
+                min-height: calc(100vh - 140px);
+                margin-top: 10px;
+            }
             
-            .timeline-scale { width: 50px; display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(48, 1fr); border-right: 1px solid #333; padding-bottom: 0; }
-            .timeline-grid { flex-grow: 1; display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(48, 1fr); margin-top: 0; height: 1000px; /* Длинный скролл */ border-bottom: none; }
+            .timeline-scale { 
+                width: 50px; 
+                display: grid; 
+                grid-template-columns: 1fr; 
+                grid-template-rows: repeat(48, 1fr); 
+                border-right: 1px solid #333; 
+                border-top: none;
+                padding-bottom: 0; 
+            }
+            
+            .timeline-grid { 
+                flex-grow: 1; 
+                display: grid; 
+                grid-template-columns: 1fr; 
+                grid-template-rows: repeat(48, 1fr); 
+                margin-top: 0; 
+                height: 1000px; /* Длинный скролл */ 
+            }
             
             .scale-tick { width: 100%; height: 100%; border-top: 1px solid #333; border-left: none; }
             .scale-tick::before { top: 0; right: 0; left: auto; background: #fff; }
@@ -121,7 +210,13 @@
             .scale-tick.minor::before { width: 5px; height: 1px; }
             .tick-label { top: -8px; left: 5px; right: auto; font-size: 12px; }
 
-            .legend { gap: 15px; padding: 20px 10px; font-size: 13px; position: sticky; bottom: 0; background: rgba(0,0,0,0.9); border-top: 1px solid #222; }
+            .legend { 
+                gap: 15px; padding: 20px 10px; font-size: 13px; 
+                position: sticky; bottom: 0; 
+                background: rgba(0,0,0,0.95); 
+                border-top: 1px solid #222; 
+                z-index: 200;
+            }
             .legend-item { white-space: nowrap; }
             
             /* Порядок для мобилки */
@@ -140,21 +235,25 @@
 </head>
 <body>
 
-    <div class="header-controls">
-        <div class="select-wrapper">
-            <select id="queueSelect" onchange="renderChart()">
-                <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
-                <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
-                <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
-                <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
-                <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
-                <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
-            </select>
-            <div class="select-arrow">▼</div>
+    <!-- ШАПКА -->
+    <div class="header-section">
+        <div class="container-limit">
+            <div class="select-wrapper">
+                <select id="queueSelect" onchange="renderChart()">
+                    <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                    <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                    <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                    <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                    <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                    <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+                </select>
+                <div class="select-arrow">▼</div>
+            </div>
+            <a href="https://off.energy.mk.ua/" target="_blank" class="btn-check-queue">Моя черга</a>
         </div>
-        <a href="https://off.energy.mk.ua/" target="_blank" class="btn-check-queue">Моя черга</a>
     </div>
 
+    <!-- ГРАФИК -->
     <div class="chart-wrapper">
         <div class="chart-content">
             <div class="adaptive-container">
@@ -164,6 +263,7 @@
         </div>
     </div>
 
+    <!-- ЛЕГЕНДА -->
     <div class="legend">
         <div class="legend-item"><div class="dot status-light"></div>Світло</div>
         <div class="legend-item"><div class="dot status-off"></div>Нема</div>
@@ -179,7 +279,7 @@
     async function init() {
         drawScale();
         
-        // Надежное сохранение (теперь это не iframe, работает стандартно)
+        // Восстановление из памяти
         const saved = localStorage.getItem('selectedQueue');
         if (saved) {
             const select = document.getElementById('queueSelect');
