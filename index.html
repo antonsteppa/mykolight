@@ -21,11 +21,12 @@
             font-family: 'Outfit', sans-serif;
             margin: 0;
             padding: 0;
-            /* Стандарт для ПК */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            /* Вернули обычный скролл, чтобы не ломать iOS */
             overflow-x: hidden;
+            overflow-y: auto; 
         }
 
         .main-container {
@@ -40,8 +41,8 @@
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
             padding: 20px 0;
-            /* На ПК она просто сверху */
-            position: relative;
+            position: sticky; /* Липкая шапка */
+            top: 0;
             z-index: 100;
         }
 
@@ -91,6 +92,7 @@
             flex-grow: 1;
             padding-top: 40px;
             width: 100%;
+            padding-bottom: 40px; /* Отступ снизу на ПК */
         }
         
         .chart-layout {
@@ -135,18 +137,13 @@
         .tick { position: relative; height: 30px; border-left: 1px solid #333; }
         .tick:first-child { border-left: none; }
 
-        .tick::after {
-            content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; width: 1px; height: 8px;
-        }
-
         .tick-label {
             position: absolute; top: 8px; left: 0; transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
-            background-color: #000; padding: 4px 2px 0 2px; z-index: 2; line-height: 1;
         }
         .tick:first-child .tick-label { transform: none; }
 
+        /* ЦВЕТА */
         .s-0 { background-color: #b7e4c7; } 
         .s-1 { background-color: #ffb5a7; } 
         .s-2 { background-color: #fbf8cc; } 
@@ -160,51 +157,31 @@
         }
         .current-time { position: relative; z-index: 5; animation: blink-border 2s infinite ease-in-out; }
 
-        /* --- 4. ЛЕГЕНДА --- */
+        /* --- 4. ЛЕГЕНДА (DESKTOP) --- */
         .legend {
-            display: flex; gap: 20px; padding: 40px 0;
+            display: flex; gap: 20px; 
+            padding: 20px 0; /* Отступ от графика */
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            margin-top: 20px;
+            /* Убрали margin-top: auto, теперь она идет просто следом за графиком */
+            background-color: #000;
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
 
-        /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ (APP MODE) --- */
+        /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 768px) {
-            /* Блокируем прокрутку тела страницы, чтобы не было "резинки" */
-            body {
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-            }
-
-            /* Шапка прибита к верху */
-            .header-section {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 80px; /* Фиксируем высоту шапки */
-                padding: 15px 0;
-            }
-            
             .header-inner { gap: 10px; }
             .select-wrapper { max-width: none; }
             .btn-search { padding: 12px; }
             .btn-search span { display: none; }
             .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
 
-            /* Область графика - единственное, что скроллится */
-            .chart-wrapper {
-                position: absolute;
-                top: 80px; /* Отступ на высоту шапки */
-                bottom: 70px; /* Отступ на высоту легенды */
-                width: 100%;
-                padding-top: 10px;
-                overflow-y: auto; /* Включаем скролл здесь */
-                -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+            .chart-wrapper { 
+                padding-top: 20px; 
+                flex-grow: 0; /* Не растягиваем */
+                /* ВАЖНО: Добавляем отступ снизу, равный высоте легенды + запас */
+                padding-bottom: 80px; 
             }
 
             .chart-layout {
@@ -212,6 +189,7 @@
                 height: auto;
             }
 
+            /* Шкала слева */
             .chart-scale {
                 width: 50px;
                 display: grid;
@@ -224,6 +202,7 @@
                 padding-right: 0;
             }
 
+            /* График справа */
             .chart-bars {
                 flex-grow: 1;
                 display: grid;
@@ -234,14 +213,13 @@
 
             .hour-cell { flex-direction: column; }
 
-            .tick { width: 100%; height: 100%; border-left: none; border-top: 1px solid #333; }
+            .tick { 
+                width: 100%; height: 100%; 
+                border-left: none; 
+                border-top: 1px solid #333; 
+            }
             .tick:first-child { border-top: none; }
             
-            .tick::after {
-                left: auto; right: 0; top: 50%;
-                width: 8px; height: 1px;
-            }
-
             .tick-label { 
                 top: 0; left: auto; right: 8px;
                 transform: translateY(-50%);
@@ -250,21 +228,25 @@
             }
             .tick:first-child .tick-label { transform: none; top: -7px; }
 
-            /* Легенда прибита к низу */
+            /* ЛЕГЕНДА (MOBILE) - FIXED BOTTOM */
             .legend {
-                position: absolute;
-                bottom: 0;
+                position: fixed; /* Гвоздями к экрану */
+                bottom: 0; 
                 left: 0;
                 width: 100%;
-                height: 70px; /* Высота легенды */
-                padding: 10px; gap: 15px; font-size: 13px;
-                background: #000;
-                border-top: 1px solid #222;
-                margin-top: 0;
-                z-index: 200;
-                /* Учет безопасной зоны iPhone (полоска снизу) */
-                padding-bottom: env(safe-area-inset-bottom);
-                height: calc(60px + env(safe-area-inset-bottom));
+                z-index: 9999; /* Поверх всего */
+                
+                padding: 15px 10px; 
+                gap: 15px; 
+                font-size: 13px;
+                background: #000; /* Непрозрачный фон */
+                border-top: 1px solid #222; 
+                margin: 0;
+                box-shadow: 0 -5px 15px rgba(0,0,0,0.5); /* Тень чтобы отделить от графика */
+                
+                /* Учет "челки" снизу на iPhone */
+                padding-bottom: env(safe-area-inset-bottom); 
+                padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
             
             .chart-scale { order: 1; }
@@ -395,31 +377,4 @@
             const stat1 = data[i];
             const stat2 = data[i+1];
 
-            let cls1 = getStatusClass(stat1);
-            let cls2 = getStatusClass(stat2);
-
-            if (i === currentIndex) cls1 += ' current-time';
-            if (i + 1 === currentIndex) cls2 += ' current-time';
-
-            html += `
-                <div class="hour-cell">
-                    <div class="half-hour ${cls1}"></div>
-                    <div class="half-hour ${cls2}"></div>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
-    }
-
-    function getStatusClass(status) {
-        if (status === 0) return 's-0';
-        if (status === 1) return 's-1';
-        if (status === 2) return 's-2';
-        if (status === 3) return 's-3';
-        return 's-gray';
-    }
-
-    init();
-</script>
-</body>
-</html>
+            let cls1 = get
