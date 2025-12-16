@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графік відключень Миколаїв</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ШАПКА */
+        .header-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: #000000;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .select-wrapper { position: relative; }
+        select {
+            appearance: none;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px 35px 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            min-width: 200px;
+            outline: none;
+        }
+        .select-arrow {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            pointer-events: none; color: #fff; font-size: 12px;
+        }
+
+        .btn-check-queue {
+            text-decoration: none;
+            background-color: #222;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 16px;
+            border: 1px solid #444;
+            transition: 0.2s;
+        }
+        .btn-check-queue:hover { background-color: #fff; color: #000; }
+
+        /* ГРАФИК */
+        .chart-wrapper { flex-grow: 1; width: 100%; display: flex; justify-content: center; }
+        .chart-content { width: 100%; max-width: 1400px; }
+
+        /* DESKTOP (Горизонтально) */
+        .timeline-grid { display: grid; grid-template-columns: repeat(48, 1fr); gap: 0; height: 100px; border-bottom: 1px solid #333; margin-top: 20px; }
+        .timeline-scale { display: grid; grid-template-columns: repeat(48, 1fr); margin-top: 0; background-color: #050505; padding-bottom: 10px; }
+        
+        .scale-tick { position: relative; height: 35px; border-left: 1px solid #333; }
+        .scale-tick::before { content: ''; position: absolute; top: 0; left: 0; background: #fff; }
+        .scale-tick.major::before { width: 2px; height: 10px; }
+        .scale-tick.minor::before { width: 1px; height: 5px; opacity: 0.5; }
+        
+        .tick-label { position: absolute; top: 14px; left: -8px; font-size: 13px; color: #888; }
+        .bar { width: 100%; height: 100%; transition: background 0.3s; }
+
+        /* ЦВЕТА */
+        .status-light { background-color: #b7e4c7; } 
+        .status-off { background-color: #ffb5a7; }   
+        .status-maybe { background-color: #fbf8cc; } 
+        .status-gray { background-color: #222; }
+        .status-sure { background-color: #e57373; }
+
+        /* АНИМАЦИЯ */
+        @keyframes pulse-border {
+            0% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 1); }
+            100% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3); }
+        }
+        .current-time { position: relative; z-index: 2; animation: pulse-border 2s infinite ease-in-out; border-radius: 2px; }
+
+        /* ЛЕГЕНДА */
+        .legend { display: flex; gap: 30px; padding: 30px; font-size: 15px; color: #ccc; justify-content: center; flex-wrap: wrap; background: #000; }
+        .legend-item { display: flex; align-items: center; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 10px; }
+
+        /* МОБИЛЬНАЯ ВЕРСИЯ */
+        @media (max-width: 768px) {
+            .header-controls { padding: 15px; gap: 10px; flex-wrap: nowrap; }
+            .select-wrapper { flex-grow: 1; min-width: 0; }
+            select { min-width: auto; width: 100%; padding-right: 30px; }
+            .btn-check-queue { flex-shrink: 0; padding: 12px 15px; font-size: 14px; }
+
+            .chart-content { display: flex; flex-direction: row; height: auto; min-height: calc(100vh - 140px); }
+            
+            .timeline-scale { width: 50px; display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(48, 1fr); border-right: 1px solid #333; padding-bottom: 0; }
+            .timeline-grid { flex-grow: 1; display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(48, 1fr); margin-top: 0; height: 1000px; /* Длинный скролл */ border-bottom: none; }
+            
+            .scale-tick { width: 100%; height: 100%; border-top: 1px solid #333; border-left: none; }
+            .scale-tick::before { top: 0; right: 0; left: auto; background: #fff; }
+            .scale-tick.major::before { width: 10px; height: 2px; }
+            .scale-tick.minor::before { width: 5px; height: 1px; }
+            .tick-label { top: -8px; left: 5px; right: auto; font-size: 12px; }
+
+            .legend { gap: 15px; padding: 20px 10px; font-size: 13px; position: sticky; bottom: 0; background: rgba(0,0,0,0.9); border-top: 1px solid #222; }
+            .legend-item { white-space: nowrap; }
+            
+            /* Порядок для мобилки */
+            .adaptive-container { display: flex; flex-direction: row; width: 100%; }
+            .timeline-scale { order: 1; }
+            .timeline-grid { order: 2; }
+        }
+        
+        /* Порядок для ПК */
+        @media (min-width: 769px) {
+            .adaptive-container { display: flex; flex-direction: column; width: 100%; }
+            .timeline-grid { order: 1; }
+            .timeline-scale { order: 2; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-controls">
+        <div class="select-wrapper">
+            <select id="queueSelect" onchange="renderChart()">
+                <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
+                <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
+                <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
+                <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
+                <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
+                <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
+            </select>
+            <div class="select-arrow">▼</div>
+        </div>
+        <a href="https://off.energy.mk.ua/" target="_blank" class="btn-check-queue">Моя черга</a>
+    </div>
+
+    <div class="chart-wrapper">
+        <div class="chart-content">
+            <div class="adaptive-container">
+                <div class="timeline-scale" id="scaleContainer"></div>
+                <div class="timeline-grid" id="barsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="dot status-light"></div>Світло</div>
+        <div class="legend-item"><div class="dot status-off"></div>Нема</div>
+        <div class="legend-item"><div class="dot status-sure"></div>Нове(((</div>
+        <div class="legend-item"><div class="dot status-maybe"></div>ХЗ</div>
+    </div>
+
+<script>
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJg7LTSiNAdsEepSRtGZp_ox-XKbHndIE7MwOs4VXiFH8-eqIOMJoZKvfmq7O59jWqDwj1Yf02NAkD/pub?output=csv';
+    
+    let scheduleData = {};
+
+    async function init() {
+        drawScale();
+        
+        // Надежное сохранение (теперь это не iframe, работает стандартно)
+        const saved = localStorage.getItem('selectedQueue');
+        if (saved) {
+            const select = document.getElementById('queueSelect');
+            if ([...select.options].some(o => o.value === saved)) {
+                select.value = saved;
+            }
+        }
+
+        await loadData();
+        renderChart();
+        setInterval(renderChart, 60000);
+    }
+
+    async function loadData() {
+        try {
+            const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+            const text = await response.text();
+            const rows = text.split('\n');
+            rows.forEach(row => {
+                const cols = row.trim().split(',');
+                if(cols.length < 2) return;
+                scheduleData[cols[0]] = cols.slice(1).map(v => parseInt(v));
+            });
+        } catch (error) { console.error(error); }
+    }
+
+    function drawScale() {
+        const container = document.getElementById('scaleContainer');
+        let html = '';
+        for (let i = 0; i < 48; i++) {
+            const isHour = (i % 2 === 0);
+            html += `<div class="scale-tick ${isHour ? 'major' : 'minor'}">
+                ${isHour ? `<span class="tick-label">${(i/2).toString().padStart(2,'0')}</span>` : ''}
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function renderChart() {
+        const queue = document.getElementById('queueSelect').value;
+        localStorage.setItem('selectedQueue', queue);
+
+        const container = document.getElementById('barsContainer');
+        const data = scheduleData[queue] || new Array(48).fill(3); 
+        
+        const now = new Date();
+        const currentIndex = (now.getHours() * 2) + (now.getMinutes() >= 30 ? 1 : 0);
+
+        let html = '';
+        const classes = ['status-light', 'status-off', 'status-maybe', 'status-sure'];
+        
+        data.forEach((status, index) => {
+            let cls = classes[status] || 'status-gray';
+            if (index === currentIndex) cls += ' current-time';
+            html += `<div class="bar ${cls}"></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    init();
+</script>
+</body>
+</html>
