@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. БАЗА --- */
+        /* --- 1. ОСНОВА --- */
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
         html { scrollbar-width: none; }
@@ -80,7 +80,7 @@
             white-space: nowrap;
         }
 
-        /* --- 3. ГРАФИК (DESKTOP) --- */
+        /* --- 3. ГРАФИК (DESKTOP DEFAULT) --- */
         .chart-wrapper {
             width: 100%;
             padding-top: 40px;
@@ -89,18 +89,17 @@
 
         .chart-layout {
             display: flex;
-            flex-direction: column; 
+            flex-direction: column; /* Вертикально: График, под ним Шкала */
             width: 100%;
         }
 
-        /* Полоса графика */
+        /* Полоса с кубиками */
         .chart-bars {
             display: grid;
-            grid-template-columns: repeat(24, 1fr);
+            grid-template-columns: repeat(24, 1fr); /* 24 часа в ряд */
             height: 80px;
-            gap: 1px;
+            gap: 2px;
             width: 100%;
-            background-color: #000; /* Фон щелей */
         }
 
         .hour-cell {
@@ -116,17 +115,17 @@
         /* Шкала */
         .chart-scale {
             display: grid;
-            grid-template-columns: repeat(24, 1fr);
+            grid-template-columns: repeat(24, 1fr); /* 24 деления в ряд */
+            margin-top: 5px;
             width: 100%;
-            margin-top: 0;
-            border-top: 1px solid #333; /* Линия разделителя ПОД графиком */
-            padding-top: 0;
+            height: 30px;
+            border-top: 1px solid #333;
         }
 
         .tick {
             position: relative;
-            height: 30px; /* Высота области шкалы */
-            border-left: 1px solid #333; /* Длинная черта часа */
+            height: 100%;
+            border-left: 1px solid #333; /* Длинная черта */
         }
         .tick:first-child { border-left: none; }
 
@@ -136,17 +135,17 @@
             left: 50%; top: 0; width: 1px; height: 6px;
         }
 
-        /* Цифра - ОПУЩЕНА ВНИЗ */
+        /* Цифра (ПОД ЛИНИЕЙ) */
         .tick-label {
             position: absolute;
-            top: 8px; /* Отступ от линии вниз */
-            left: 0;  /* Привязка к началу блока */
-            transform: translateX(-50%); /* Центровка относительно черты */
+            top: 10px; /* Сдвигаем вниз */
+            left: 0;
+            transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
             line-height: 1;
         }
-        /* 00 сдвигаем чуть правее на ПК, чтобы не обрезалось */
-        .tick:first-child .tick-label { transform: none; left: 0; }
+        /* 00 сдвигаем правее */
+        .tick:first-child .tick-label { left: 0; transform: none; }
 
         /* Цвета */
         .s-0 { background-color: #b7e4c7; } 
@@ -156,9 +155,9 @@
         .s-gray { background-color: #222; }
 
         @keyframes blink {
-            0% { box-shadow: inset 0 0 0 2px rgba(255,255,255,1); }
-            50% { box-shadow: inset 0 0 0 2px rgba(255,255,255,0); }
-            100% { box-shadow: inset 0 0 0 2px rgba(255,255,255,1); }
+            0% { box-shadow: inset 0 0 0 2px #fff; }
+            50% { box-shadow: inset 0 0 0 2px transparent; }
+            100% { box-shadow: inset 0 0 0 2px #fff; }
         }
         .current-time { position: relative; z-index: 10; animation: blink 2s infinite; }
 
@@ -167,7 +166,7 @@
             display: flex; gap: 20px; padding: 20px 0;
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            margin-top: 20px;
+            margin-top: auto;
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
@@ -183,24 +182,29 @@
 
             .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
 
-            /* Ряд: Шкала | График */
-            .chart-layout { flexDirection: row; }
+            /* Меняем направление на РЯД */
+            .chart-layout {
+                flex-direction: row; 
+            }
 
             /* Шкала СЛЕВА */
             .chart-scale {
-                width: 40px; /* Фиксированная ширина */
+                width: 40px;
                 display: grid;
+                /* Переключаем на 1 колонку и 24 строки */
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
+                height: 1000px; /* Высота графика */
                 border-top: none;
-                border-right: 1px solid #333; /* Линия справа от цифр */
+                border-right: 1px solid #333;
+                margin-top: 0;
             }
 
             /* График СПРАВА */
             .chart-bars {
                 flex: 1;
                 display: grid;
+                /* Переключаем на 1 колонку и 24 строки */
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
                 height: 1000px;
@@ -214,43 +218,32 @@
                 border-left: none;
                 border-top: 1px solid #333;
             }
-            /* Убираем верхнюю границу у 00, чтобы не двоилась */
             .tick:first-child { border-top: none; }
 
-            /* Риска 30 мин (справа) */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* Цифры на мобильном */
+            /* Цифры СЛЕВА от линии */
             .tick-label {
                 top: 0; 
                 left: auto; 
-                right: 8px; /* Отступ от линии */
-                transform: translateY(-50%); /* Центр по вертикали на линии */
+                right: 8px; /* Отступ вправо к линии */
+                transform: translateY(-50%);
                 text-align: right;
                 width: auto;
             }
-            /* Для 00 тоже применяем этот стиль (сброс ПК стиля) */
-            .tick:first-child .tick-label { 
-                top: 0; left: auto; right: 8px; transform: translateY(-50%); 
-                /* 00 чуть ниже, так как у него нет линии сверху */
-                margin-top: 0; 
-            }
-            /* Фикс для 00, чтобы он был на уровне воображаемой верхней линии */
-            .tick:first-child { display: flex; align-items: flex-start; justify-content: flex-end; }
-            .tick:first-child .tick-label { position: relative; top: -7px; right: 8px; transform: none; }
-
+            .tick:first-child .tick-label { transform: none; top: -7px; }
 
             /* Легенда фиксирована внизу */
             .legend {
                 position: fixed; bottom: 0; left: 0; width: 100%;
                 background: #000; border-top: 1px solid #222;
                 padding: 15px; z-index: 999; margin: 0;
-                padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
             
+            /* CSS ORDER: Шкала первая, График второй */
             .chart-scale { order: 1; }
             .chart-bars { order: 2; }
         }
