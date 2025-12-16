@@ -10,37 +10,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. ОСНОВА --- */
+        /* --- 1. КАРКАС ПРИЛОЖЕНИЯ (FIX iOS SCROLL) --- */
         * { box-sizing: border-box; }
+        
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
         html { scrollbar-width: none; }
 
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%; /* Фиксируем высоту на 100% экрана */
             background-color: #000000;
             color: #ffffff;
             font-family: 'Outfit', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden; /* ЗАПРЕЩАЕМ скролл самой страницы */
+            position: fixed; /* Гвоздь для iOS, чтобы body не ездил */
         }
 
-        .main-container {
+        body {
+            display: flex;
+            flex-direction: column; /* Вертикальный стек: Шапка -> Контент -> Подвал */
+        }
+
+        .container {
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
-        /* --- 2. ШАПКА --- */
+        /* --- 2. ШАПКА (Фиксированная) --- */
         .header-section {
+            flex: 0 0 auto; /* Не сжиматься, не растягиваться */
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
-            padding: 20px 0;
-            position: sticky;
-            top: 0;
+            padding: 15px 0;
             z-index: 100;
         }
 
@@ -80,20 +85,29 @@
             white-space: nowrap;
         }
 
-        /* --- 3. ГРАФИК --- */
-        .chart-wrapper {
+        /* --- 3. ОБЛАСТЬ ПРОКРУТКИ (ГРАФИК) --- */
+        .scroll-area {
+            flex: 1 1 auto; /* Занимает все доступное место */
+            overflow-y: auto; /* Скроллится ТОЛЬКО этот блок */
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+            position: relative;
             width: 100%;
-            padding-top: 40px;
-            padding-bottom: 40px;
+        }
+
+        .chart-wrapper {
+            padding-top: 20px;
+            padding-bottom: 20px;
+            width: 100%;
         }
         
         .chart-layout {
             display: flex;
-            flex-direction: column; /* ПК: вертикально */
+            flex-direction: column; 
             width: 100%;
         }
 
-        /* ГРАФИК (Ячейки) */
+        /* Полоса графика */
         .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
@@ -112,51 +126,37 @@
         }
         .half-hour { flex: 1; height: 100%; transition: background 0.3s; }
 
-        /* ШКАЛА (Чистая линейка) */
+        /* Шкала */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
-            width: 100%;
-            margin-top: 0;
-            /* Главная линия разделителя */
-            border-top: 1px solid #333; 
-            padding-top: 0;
             gap: 1px;
+            margin-top: 5px;
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            width: 100%;
         }
 
-        /* Блок деления */
         .tick {
             position: relative;
-            height: 40px;
-            /* Убрали border-left, чтобы не черкать цифры */
+            height: 30px;
+            border-left: 1px solid #333;
         }
+        .tick:first-child { border-left: none; }
 
-        /* ДЛИННАЯ ЗАСЕЧКА (ЧАС) - рисуем отдельно */
-        .tick::before {
-            content: ''; position: absolute; background: #333;
-            left: 0; top: 0; 
-            width: 1px; height: 10px; /* Только сверху */
-        }
-        /* Убираем первую засечку (00), чтобы не торчала слева */
-        .tick:first-child::before { display: none; }
-
-        /* КОРОТКАЯ ЗАСЕЧКА (ПОЛЧАСА) */
         .tick::after {
             content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; 
-            width: 1px; height: 6px; /* Короче */
+            left: 50%; top: 0; width: 1px; height: 6px;
         }
 
-        /* ЦИФРА - стоит свободно */
         .tick-label {
             position: absolute;
-            top: 15px; /* Под засечками */
+            top: 10px;
             left: 0;
             transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
             line-height: 1;
         }
-        /* 00 чуть правее */
         .tick:first-child .tick-label { transform: none; left: 0; }
 
         /* Цвета */
@@ -173,33 +173,36 @@
         }
         .current-time { position: relative; z-index: 10; animation: blink 2s infinite; }
 
-        /* --- 4. ЛЕГЕНДА --- */
-        .legend {
+        /* --- 4. ЛЕГЕНДА (Фиксированная) --- */
+        .legend-section {
+            flex: 0 0 auto; /* Не сжиматься */
+            background-color: #000000;
+            border-top: 1px solid #222;
+            padding: 15px 0;
+            z-index: 100;
+            /* Учет безопасной зоны iPhone */
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+        }
+
+        .legend-inner {
             display: flex; gap: 20px; 
             justify-content: center; flex-wrap: wrap;
-            font-size: 14px; color: #ccc;
-            /* Идет следом за графиком */
-            margin-top: 20px; 
+            font-size: 13px; color: #ccc;
         }
-        .legend-item { display: flex; align-items: center; }
-        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
+        .legend-item { display: flex; align-items: center; white-space: nowrap; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; }
 
         /* --- 5. МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 768px) {
-            .header-content { flex-wrap: nowrap; gap: 10px; }
+            .header-inner { gap: 10px; }
             .select-wrapper { max-width: none; }
             
             .btn-search { padding: 12px; }
             .btn-search span { display: none; }
             .btn-search::after { content: '🔍'; font-size: 18px; color: #fff; }
 
-            .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
-
-            /* Ряд: Шкала | График */
-            .chart-layout { 
-                flex-direction: row; 
-                align-items: flex-start; /* Важно для высоты */
-            }
+            .chart-layout { flexDirection: row; }
 
             /* Шкала СЛЕВА */
             .chart-scale {
@@ -207,13 +210,12 @@
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                /* Фиксируем высоту графика, чтобы он появился! */
-                height: 1000px; 
+                height: 1000px; /* Высота прокручиваемой зоны */
                 border-top: none;
-                /* Линия разделителя справа */
-                border-right: 1px solid #333; 
+                border-right: 1px solid #333;
                 margin-top: 0;
                 gap: 1px;
+                padding-top: 0;
             }
 
             /* График СПРАВА */
@@ -222,51 +224,35 @@
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                /* Та же высота */
-                height: 1000px; 
+                height: 1000px;
                 gap: 1px;
             }
 
             .hour-cell { flex-direction: column; }
 
+            /* Тики на мобильном */
             .tick {
                 width: 100%; height: 100%;
-                /* Убираем старые стили */
-                border-left: none; 
+                border-left: none;
+                border-top: 1px solid #333;
             }
+            .tick:first-child { border-top: none; }
 
-            /* ДЛИННАЯ ЗАСЕЧКА (Справа, горизонтальная) */
-            .tick::before {
-                left: auto; right: 0; top: 0;
-                width: 10px; height: 1px;
-            }
-            .tick:first-child::before { display: none; }
-
-            /* КОРОТКАЯ ЗАСЕЧКА (Справа, 30 мин) */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* ЦИФРЫ (Слева от линии) */
             .tick-label {
                 top: 0; 
-                left: auto; right: 12px; /* Отступ влево от линии */
+                left: auto; 
+                right: 8px;
                 transform: translateY(-50%);
-                text-align: right; width: auto;
+                text-align: right;
+                width: auto;
             }
-            .tick:first-child .tick-label { transform: none; top: -6px; }
-
-            /* Легенда фиксирована внизу */
-            .legend {
-                position: fixed; bottom: 0; left: 0; width: 100%;
-                background: #000; border-top: 1px solid #222;
-                padding: 15px; z-index: 999; margin: 0;
-                /* Учет iPhone */
-                padding-bottom: max(15px, env(safe-area-inset-bottom));
-            }
+            .tick:first-child .tick-label { transform: none; top: -7px; }
             
-            /* Порядок: Шкала (1), График (2) */
             .chart-scale { order: 1; }
             .chart-bars { order: 2; }
         }
@@ -274,6 +260,7 @@
 </head>
 <body>
 
+    <!-- ВЕРХНЯЯ ЧАСТЬ (НЕПОДВИЖНАЯ) -->
     <div class="header-section">
         <div class="main-container">
             <div class="header-inner">
@@ -293,20 +280,26 @@
         </div>
     </div>
 
-    <div class="chart-wrapper">
+    <!-- СРЕДНЯЯ ЧАСТЬ (ПРОКРУЧИВАЕТСЯ) -->
+    <div class="scroll-area">
         <div class="main-container">
-            <div class="chart-layout">
-                <div class="chart-bars" id="barsContainer"></div>
-                <div class="chart-scale" id="scaleContainer"></div>
+            <div class="chart-wrapper">
+                <div class="chart-layout">
+                    <div class="chart-bars" id="barsContainer"></div>
+                    <div class="chart-scale" id="scaleContainer"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="legend">
-        <div class="legend-item"><div class="dot s-0"></div>Світло</div>
-        <div class="legend-item"><div class="dot s-1"></div>Нема</div>
-        <div class="legend-item"><div class="dot s-3"></div>Нове(((</div>
-        <div class="legend-item"><div class="dot s-2"></div>ХЗ</div>
+    <!-- НИЖНЯЯ ЧАСТЬ (НЕПОДВИЖНАЯ) -->
+    <div class="legend-section">
+        <div class="main-container legend-inner">
+            <div class="legend-item"><div class="dot s-0"></div>Світло</div>
+            <div class="legend-item"><div class="dot s-1"></div>Нема</div>
+            <div class="legend-item"><div class="dot s-3"></div>Нове(((</div>
+            <div class="legend-item"><div class="dot s-2"></div>ХЗ</div>
+        </div>
     </div>
 
 <script>
