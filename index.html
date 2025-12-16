@@ -27,7 +27,7 @@
             overflow-x: hidden;
         }
 
-        .container {
+        .main-container {
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
@@ -35,7 +35,7 @@
         }
 
         /* --- 2. ШАПКА --- */
-        .header {
+        .header-section {
             background-color: #000000;
             border-bottom: 1px solid #1a1a1a;
             padding: 20px 0;
@@ -44,7 +44,7 @@
             z-index: 100;
         }
 
-        .header-content {
+        .header-inner {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -80,25 +80,25 @@
             white-space: nowrap;
         }
 
-        /* --- 3. ГРАФИК (DESKTOP) --- */
+        /* --- 3. ГРАФИК --- */
         .chart-wrapper {
             width: 100%;
             padding-top: 40px;
-            padding-bottom: 20px;
+            padding-bottom: 40px;
         }
-
+        
         .chart-layout {
             display: flex;
-            flex-direction: column; 
+            flex-direction: column; /* ПК: вертикально */
             width: 100%;
         }
 
-        /* Полоса графика */
+        /* ГРАФИК (Ячейки) */
         .chart-bars {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
             height: 80px;
-            gap: 1px; /* Строго 1 пиксель */
+            gap: 1px;
             width: 100%;
         }
 
@@ -112,41 +112,52 @@
         }
         .half-hour { flex: 1; height: 100%; transition: background 0.3s; }
 
-        /* ШКАЛА (Линейка) */
+        /* ШКАЛА (Чистая линейка) */
         .chart-scale {
             display: grid;
             grid-template-columns: repeat(24, 1fr);
             width: 100%;
             margin-top: 0;
-            border-top: 1px solid #333; /* Главная горизонтальная линия */
+            /* Главная линия разделителя */
+            border-top: 1px solid #333; 
             padding-top: 0;
-            gap: 1px; /* Чтобы штрихи совпадали с блоками */
+            gap: 1px;
         }
 
+        /* Блок деления */
         .tick {
             position: relative;
-            height: 40px; /* Высота зоны для цифр */
-            border-left: 1px solid #333; /* Длинный штрих (час) */
+            height: 40px;
+            /* Убрали border-left, чтобы не черкать цифры */
         }
-        .tick:first-child { border-left: none; }
 
-        /* Короткий штрих (30 мин) */
+        /* ДЛИННАЯ ЗАСЕЧКА (ЧАС) - рисуем отдельно */
+        .tick::before {
+            content: ''; position: absolute; background: #333;
+            left: 0; top: 0; 
+            width: 1px; height: 10px; /* Только сверху */
+        }
+        /* Убираем первую засечку (00), чтобы не торчала слева */
+        .tick:first-child::before { display: none; }
+
+        /* КОРОТКАЯ ЗАСЕЧКА (ПОЛЧАСА) */
         .tick::after {
             content: ''; position: absolute; background: #333;
-            left: 50%; top: 0; width: 1px; height: 6px;
+            left: 50%; top: 0; 
+            width: 1px; height: 6px; /* Короче */
         }
 
-        /* Цифра */
+        /* ЦИФРА - стоит свободно */
         .tick-label {
             position: absolute;
-            top: 12px; /* Отступ от линии вниз, чтобы не перечеркивало */
+            top: 15px; /* Под засечками */
             left: 0;
             transform: translateX(-50%);
             font-size: 12px; color: #666; font-weight: 500;
             line-height: 1;
         }
         /* 00 чуть правее */
-        .tick:first-child .tick-label { transform: none; left: -2px; }
+        .tick:first-child .tick-label { transform: none; left: 0; }
 
         /* Цвета */
         .s-0 { background-color: #b7e4c7; } 
@@ -164,10 +175,11 @@
 
         /* --- 4. ЛЕГЕНДА --- */
         .legend {
-            display: flex; gap: 20px; padding: 20px 0;
+            display: flex; gap: 20px; 
             justify-content: center; flex-wrap: wrap;
             font-size: 14px; color: #ccc;
-            margin-top: 20px;
+            /* Идет следом за графиком */
+            margin-top: 20px; 
         }
         .legend-item { display: flex; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
@@ -183,7 +195,11 @@
 
             .chart-wrapper { padding-top: 20px; padding-bottom: 80px; }
 
-            .chart-layout { flexDirection: row; }
+            /* Ряд: Шкала | График */
+            .chart-layout { 
+                flex-direction: row; 
+                align-items: flex-start; /* Важно для высоты */
+            }
 
             /* Шкала СЛЕВА */
             .chart-scale {
@@ -191,9 +207,11 @@
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
+                /* Фиксируем высоту графика, чтобы он появился! */
+                height: 1000px; 
                 border-top: none;
-                border-right: 1px solid #333; /* Главная вертикальная линия */
+                /* Линия разделителя справа */
+                border-right: 1px solid #333; 
                 margin-top: 0;
                 gap: 1px;
             }
@@ -204,45 +222,51 @@
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(24, 1fr);
-                height: 1000px;
+                /* Та же высота */
+                height: 1000px; 
                 gap: 1px;
             }
 
             .hour-cell { flex-direction: column; }
 
-            /* Тики на мобильном */
             .tick {
                 width: 100%; height: 100%;
-                border-left: none;
-                border-top: 1px solid #333; /* Длинный штрих (час) */
+                /* Убираем старые стили */
+                border-left: none; 
             }
-            .tick:first-child { border-top: none; }
 
-            /* Риска 30 мин (справа) */
+            /* ДЛИННАЯ ЗАСЕЧКА (Справа, горизонтальная) */
+            .tick::before {
+                left: auto; right: 0; top: 0;
+                width: 10px; height: 1px;
+            }
+            .tick:first-child::before { display: none; }
+
+            /* КОРОТКАЯ ЗАСЕЧКА (Справа, 30 мин) */
             .tick::after {
                 left: auto; right: 0; top: 50%;
                 width: 6px; height: 1px;
             }
 
-            /* Цифры */
+            /* ЦИФРЫ (Слева от линии) */
             .tick-label {
                 top: 0; 
-                left: auto; 
-                right: 10px; /* Отступ от линии влево */
+                left: auto; right: 12px; /* Отступ влево от линии */
                 transform: translateY(-50%);
-                text-align: right;
-                width: auto;
+                text-align: right; width: auto;
             }
-            /* 00 */
-            .tick:first-child .tick-label { transform: none; top: -7px; }
+            .tick:first-child .tick-label { transform: none; top: -6px; }
 
-            /* Легенда */
+            /* Легенда фиксирована внизу */
             .legend {
                 position: fixed; bottom: 0; left: 0; width: 100%;
                 background: #000; border-top: 1px solid #222;
                 padding: 15px; z-index: 999; margin: 0;
+                /* Учет iPhone */
+                padding-bottom: max(15px, env(safe-area-inset-bottom));
             }
             
+            /* Порядок: Шкала (1), График (2) */
             .chart-scale { order: 1; }
             .chart-bars { order: 2; }
         }
@@ -250,109 +274,7 @@
 </head>
 <body>
 
-    <div class="header">
-        <div class="container header-content">
-            <div class="select-wrapper">
-                <select id="queueSelect" onchange="renderChart()">
-                    <option value="1.1">1.1 Черга</option><option value="1.2">1.2 Черга</option>
-                    <option value="2.1">2.1 Черга</option><option value="2.2">2.2 Черга</option>
-                    <option value="3.1">3.1 Черга</option><option value="3.2">3.2 Черга</option>
-                    <option value="4.1">4.1 Черга</option><option value="4.2">4.2 Черга</option>
-                    <option value="5.1">5.1 Черга</option><option value="5.2">5.2 Черга</option>
-                    <option value="6.1">6.1 Черга</option><option value="6.2">6.2 Черга</option>
-                </select>
-                <div class="select-arrow">▼</div>
-            </div>
-            <a href="https://off.energy.mk.ua/" target="_blank" class="btn-search"><span>Дізнатись чергу</span></a>
-        </div>
-    </div>
-
-    <div class="chart-wrapper">
-        <div class="container">
-            <div class="chart-layout">
-                <div class="chart-bars" id="barsContainer"></div>
-                <div class="chart-scale" id="scaleContainer"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="legend">
-        <div class="legend-item"><div class="dot s-0"></div>Світло</div>
-        <div class="legend-item"><div class="dot s-1"></div>Нема</div>
-        <div class="legend-item"><div class="dot s-3"></div>Нове(((</div>
-        <div class="legend-item"><div class="dot s-2"></div>ХЗ</div>
-    </div>
-
-<script>
-    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJg7LTSiNAdsEepSRtGZp_ox-XKbHndIE7MwOs4VXiFH8-eqIOMJoZKvfmq7O59jWqDwj1Yf02NAkD/pub?output=csv';
-    let scheduleData = {};
-
-    function saveQueue(val) {
-        try { localStorage.setItem('myQ', val); } catch(e){}
-        document.cookie = "myQ="+val+"; path=/; max-age=31536000";
-    }
-    function getSavedQueue() {
-        let v = null;
-        try { v = localStorage.getItem('myQ'); } catch(e){}
-        if(!v) { const m = document.cookie.match(/myQ=([^;]+)/); if(m) v=m[1]; }
-        return v;
-    }
-
-    async function init() {
-        drawScale();
-        const saved = getSavedQueue();
-        if (saved) {
-            const el = document.getElementById('queueSelect');
-            if([...el.options].some(o=>o.value===saved)) el.value = saved;
-        }
-        await loadData();
-        renderChart();
-        setInterval(renderChart, 60000);
-    }
-
-    async function loadData() {
-        try {
-            const res = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
-            const txt = await res.text();
-            txt.split('\n').forEach(row => {
-                const c = row.trim().split(',');
-                if(c.length > 1) scheduleData[c[0].trim()] = c.slice(1).map(v=>parseInt(v));
-            });
-        } catch(e) { console.error(e); }
-    }
-
-    function drawScale() {
-        const el = document.getElementById('scaleContainer');
-        let html = '';
-        for(let i=0; i<24; i++) {
-            const t = i.toString().padStart(2,'0');
-            html += `<div class="tick"><span class="tick-label">${t}</span></div>`;
-        }
-        el.innerHTML = html;
-    }
-
-    function renderChart() {
-        const q = document.getElementById('queueSelect').value;
-        saveQueue(q);
-        const el = document.getElementById('barsContainer');
-        const data = scheduleData[q] || Array(48).fill(3);
-        
-        const now = new Date();
-        const curIdx = (now.getHours()*2) + (now.getMinutes()>=30?1:0);
-
-        let html = '';
-        for(let i=0; i<48; i+=2) {
-            const s1 = data[i], s2 = data[i+1];
-            let c1 = `s-${s1}`, c2 = `s-${s2}`;
-            if(i === curIdx) c1 += ' current-time';
-            if(i+1 === curIdx) c2 += ' current-time';
-            
-            html += `<div class="hour-cell"><div class="half-hour ${c1}"></div><div class="half-hour ${c2}"></div></div>`;
-        }
-        el.innerHTML = html;
-    }
-
-    init();
-</script>
-</body>
-</html>
+    <div class="header-section">
+        <div class="main-container">
+            <div class="header-inner">
+                <div class="select-wrapper">
